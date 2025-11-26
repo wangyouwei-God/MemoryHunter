@@ -15,10 +15,10 @@ ENABLE_VLM = True                          # ✅ 启用VLM深度理解 (Phase 1�
 ENABLE_HYBRID_SEARCH = True                # ✅ 启用混合检索 (Phase 1优化)
 ENABLE_LAZY_LOAD = True                    # VLM 懒加载（节省内存）
 
-# ============ 模型配置 - V1.0 ============
-MODEL_NAME = "OFA-Sys/chinese-clip-vit-base-patch16"
+# ============ 模型配置 - V2.1 升级 ============
+MODEL_NAME = "OFA-Sys/chinese-clip-vit-large-patch14"  # 🚀 升级到Large模型
 DEVICE = "cuda"                            # 启用 CUDA 加速 (RTX 4080)
-BATCH_SIZE = 32                            # 增加批处理以利用GPU
+BATCH_SIZE = 16                            # 降低批处理以适应更大模型 (Large: 430M参数)
 
 # ============ VLM 配置 - V2.0 ============
 VLM_MODEL_NAME = "openbmb/MiniCPM-Llama3-V-2_5"  # V2.5（transformers 4.40兼容）
