@@ -20,4 +20,5 @@ memory-hunter-data/
 memory-hunter-models/
 *.log
 windows_deploy/
-test_photos/
+# test_photos/ (Commented out to allow tracking)
+
