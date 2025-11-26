@@ -1,0 +1,24 @@
+# Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# AI/ML Libraries - V2.0 Upgrade
+torch==2.1.0
+transformers==4.40.2        # 升级以支持 idefics2（MiniCPM需要）
+accelerate==0.24.1
+bitsandbytes==0.41.3  # INT8 量化支持
+sentencepiece==0.1.99  # Mini-CPM-V tokenizer
+protobuf==3.20.3
+
+# Image Processing
+pillow==10.1.0
+pillow-heif==0.13.1
+timm==0.9.12  # Vision models
+
+# Vector Database
+chromadb==0.4.18
+
+# Utilities
+numpy==1.24.3
+scipy==1.11.4
