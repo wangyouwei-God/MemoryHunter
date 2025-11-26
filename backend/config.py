@@ -11,8 +11,8 @@ CHROMA_DIR = Path("f:/MemoryHunter/temp2/chroma_db")     # ChromaDB 存储目录
 FRONTEND_DIR = Path("f:/MemoryHunter/temp2/frontend")    # 前端静态文件目录
 
 # ============ V2.0 功能开关 ============
-ENABLE_VLM = False                         # 暂时关闭VLM（先测试CLIP）
-ENABLE_HYBRID_SEARCH = False               # 暂时关闭混合检索
+ENABLE_VLM = True                          # ✅ 启用VLM深度理解 (Phase 1优化)
+ENABLE_HYBRID_SEARCH = True                # ✅ 启用混合检索 (Phase 1优化)
 ENABLE_LAZY_LOAD = True                    # VLM 懒加载（节省内存）
 
 # ============ 模型配置 - V1.0 ============
@@ -31,11 +31,11 @@ VLM_DEVICE = "cuda"                        # 启用GPU加速
 TOP_K = 20                                 # 默认返回结果数量
 SIMILARITY_THRESHOLD = 0.0                 # 相似度阈值 (0.0-1.0)
 
-# V2.0 混合检索权重
+# V2.0 混合检索权重 (Phase 1优化)
 HYBRID_SEARCH_WEIGHTS = {
-    "visual": 0.4,      # 视觉相似度权重
-    "semantic": 0.4,    # 语义相似度权重
-    "keyword": 0.2,     # 关键词匹配权重
+    "visual": 0.35,      # 视觉相似度权重 (CLIP)
+    "semantic": 0.35,    # 语义相似度权重 (VLM)
+    "keyword": 0.30,     # 关键词匹配权重 (提升精确匹配)
 }
 
 # ============ 图片格式 ============

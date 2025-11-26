@@ -68,9 +68,18 @@ try:
     vector_db = VectorDatabase()
     logger.info("✅ 向量数据库已初始化")
     
-    # 初始化索引器和搜索器（传入 VLM）
+    # Phase 1优化: 初始化查询扩展器
+    try:
+        from .query_expander import QueryExpander
+        query_expander = QueryExpander()
+        logger.info("✅ 查询扩展器已初始化 (Phase 1优化)")
+    except Exception as e:
+        logger.warning(f"⚠️ 查询扩展器加载失败: {e}")
+        query_expander = None
+    
+    # 初始化索引器和搜索器（传入 VLM 和 QueryExpander）
     indexer = ImageIndexer(model_manager, vector_db, vlm_manager)
-    searcher = ImageSearcher(model_manager, vector_db)
+    searcher = ImageSearcher(model_manager, vector_db, query_expander)
     
     logger.info("✅ MemoryHunter V2.0 初始化完成!")
     if ENABLE_VLM and vlm_manager:
