@@ -6,26 +6,26 @@
 from pathlib import Path
 
 # ============ 路径配置 ============
-PHOTOS_DIR = Path("/app/photos")          # 相册目录 (挂载点)
-CHROMA_DIR = Path("/app/chroma_db")       # ChromaDB 存储目录
-FRONTEND_DIR = Path("/app/frontend")      # 前端静态文件目录
+PHOTOS_DIR = Path("f:/MemoryHunter/temp2/test_photos")  # 本地相册目录
+CHROMA_DIR = Path("f:/MemoryHunter/temp2/chroma_db")     # ChromaDB 存储目录
+FRONTEND_DIR = Path("f:/MemoryHunter/temp2/frontend")    # 前端静态文件目录
 
 # ============ V2.0 功能开关 ============
-ENABLE_VLM = True                          # 启用 Mini-CPM-V (深度理解)
-ENABLE_HYBRID_SEARCH = True                # 启用混合检索
+ENABLE_VLM = False                         # 暂时关闭VLM（先测试CLIP）
+ENABLE_HYBRID_SEARCH = False               # 暂时关闭混合检索
 ENABLE_LAZY_LOAD = True                    # VLM 懒加载（节省内存）
 
 # ============ 模型配置 - V1.0 ============
 MODEL_NAME = "OFA-Sys/chinese-clip-vit-base-patch16"
-DEVICE = "cpu"                             # 强制 CPU 模式（Docker）
-BATCH_SIZE = 16                            # 批处理大小
+DEVICE = "cuda"                            # 启用 CUDA 加速 (RTX 4080)
+BATCH_SIZE = 32                            # 增加批处理以利用GPU
 
 # ============ VLM 配置 - V2.0 ============
 VLM_MODEL_NAME = "openbmb/MiniCPM-Llama3-V-2_5"  # V2.5（transformers 4.40兼容）
-VLM_USE_QUANTIZATION = False               # 关闭量化（CPU环境兼容性优先）
-VLM_BATCH_SIZE = 2                         # VLM 批处理（8GB内存建议2）
+VLM_USE_QUANTIZATION = False               # 关闭量化（12GB VRAM充足）
+VLM_BATCH_SIZE = 4                         # 增加VLM批处理（12GB VRAM）
 VLM_MAX_NEW_TOKENS = 512                   # 最大生成token数
-VLM_DEVICE = "cpu"                         # VLM 设备
+VLM_DEVICE = "cuda"                        # 启用GPU加速
 
 # ============ 搜索配置 ============
 TOP_K = 20                                 # 默认返回结果数量
@@ -54,8 +54,8 @@ SUPPORTED_FORMATS = {
 
 # ============ 性能优化 ============
 ENABLE_CACHE = True                        # 启用缓存
-CACHE_SIZE = 100                           # 缓存结果数量
-NUM_WORKERS = 2                            # 工作线程数（双核CPU）
+CACHE_SIZE = 200                           # 增加缓存（充足内存）
+NUM_WORKERS = 4                            # 增加工作线程（GPU环境）
 PREFETCH = True                            # 预取数据
 
 # ============ 内存管理 ============
