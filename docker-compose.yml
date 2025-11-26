@@ -3,46 +3,27 @@ version: '3.8'
 services:
   memhunter:
     build: .
-    image: memory-hunter:v2.0
+    image: memory-hunter:v1.0
     container_name: memory-hunter
     ports:
       - "8000:8000"
     volumes:
-      # 照片目录（只读）
+      # 照片目录 (只读)
       - ~/Pictures/TestDataset:/app/photos:ro
-
       # 数据库持久化
       - ~/memory-hunter-data:/app/chroma_db
-
-      # 模型缓存持久化（重要！避免重复下载8GB模型）
-      - ~/memory-hunter-models:/root/.cache/huggingface
-
+    
     environment:
-      # 启用 V2.0 功能
-      - ENABLE_VLM=true
-      - ENABLE_HYBRID_SEARCH=true
-
-      # HuggingFace Token (Read from .env file)
-      - HF_TOKEN=${HF_TOKEN}
-
-      # 性能优化
+      - ENABLE_VLM=false
       - PYTHONUNBUFFERED=1
-      - OMP_NUM_THREADS=2
+      # V1.0 不需要 HF_TOKEN
 
-    # 资源限制（保护宿主机）
+    # V1.0 资源需求很低，4GB 足够
     deploy:
       resources:
         limits:
-          memory: 6G
-          cpus: '2'
+          memory: 4G
         reservations:
-          memory: 2G
+          memory: 1G
 
     restart: unless-stopped
-
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
