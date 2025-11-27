@@ -326,6 +326,7 @@ async def remove_folder(folder_id: str, delete_vectors: bool = False):
         raise HTTPException(status_code=500, detail=f"移除文件夹失败: {str(e)}")
 
 
+
 @router.get("/stats/summary")
 async def get_folders_stats():
     """
@@ -341,3 +342,170 @@ async def get_folders_stats():
     except Exception as e:
         logger.error(f"获取统计信息失败: {e}")
         raise HTTPException(status_code=500, detail=f"获取统计信息失败: {str(e)}")
+
+
+# Phase 3: 文件夹扫描和索引端点
+
+class ScanResponse(BaseModel):
+    """扫描响应"""
+    folder_id: str
+    total_images: int
+    valid_images: int
+    errors: int
+
+
+class IndexRequest(BaseModel):
+    """索引请求"""
+    force_reindex: bool = False
+
+
+@router.post("/{folder_id}/scan", response_model=ScanResponse)
+async def scan_folder(folder_id: str):
+    """
+    扫描文件夹，预览将要索引的图片数量
+    
+    Args:
+        folder_id: 文件夹ID
+    
+    Returns:
+        扫描结果
+    """
+    from .scanner import FolderScanner
+    from .database import VectorDatabase
+    from pathlib import Path
+    
+    try:
+        # 获取文件夹配置
+        folder = folder_manager.get_folder_by_id(folder_id)
+        if not folder:
+            raise HTTPException(status_code=404, detail=f"文件夹不存在: {folder_id}")
+        
+        folder_path = Path(folder['path'])
+        if not folder_path.exists():
+            raise HTTPException(status_code=404, detail=f"文件夹路径不存在: {folder['path']}")
+        
+        # 创建扫描器
+        vector_db = VectorDatabase()
+        scanner = FolderScanner(vector_db)
+        
+        # 执行扫描
+        valid_images, errors = scanner.scan_folder(
+            folder_path,
+            check_duplicates=True,
+            verify_images=True
+        )
+        
+        # 更新文件夹统计
+        folder_manager.update_stats(
+            folder_id,
+            image_count=len(valid_images)
+        )
+        
+        return ScanResponse(
+            folder_id=folder_id,
+            total_images=len(valid_images) + len(errors),
+            valid_images=len(valid_images),
+            errors=len(errors)
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"扫描文件夹失败: {e}")
+        raise HTTPException(status_code=500, detail=f"扫描文件夹失败: {str(e)}")
+
+
+@router.post("/{folder_id}/index")
+async def index_folder(folder_id: str, request: IndexRequest, background_tasks):
+    """
+    触发文件夹索引（后台任务）
+    
+    Args:
+        folder_id: 文件夹ID
+        request: 索引请求参数
+        background_tasks: FastAPI后台任务
+    
+    Returns:
+        索引任务状态
+    """
+    from fastapi import BackgroundTasks
+    from pathlib import Path
+    
+    try:
+        # 获取文件夹配置
+        folder = folder_manager.get_folder_by_id(folder_id)
+        if not folder:
+            raise HTTPException(status_code=404, detail=f"文件夹不存在: {folder_id}")
+        
+        folder_path = Path(folder['path'])
+        if not folder_path.exists():
+            raise HTTPException(status_code=404, detail=f"文件夹路径不存在: {folder['path']}")
+        
+        # 检查状态
+        if folder['status'] == 'indexing':
+            raise HTTPException(status_code=409, detail="该文件夹正在索引中")
+        
+        # 定义后台索引任务
+        def index_task():
+            from .models import CLIPModelManager
+            from .database import VectorDatabase
+            from .indexer import ImageIndexer
+            from .config import ENABLE_VLM
+            
+            try:
+                # 设置状态为索引中
+                folder_manager.set_folder_status(folder_id, 'indexing')
+                
+                # 初始化组件
+                model_manager = CLIPModelManager()
+                vector_db = VectorDatabase()
+                
+                vlm_manager = None
+                if ENABLE_VLM:
+                    try:
+                        from .vlm import MiniCPMVManager
+                        vlm_manager = MiniCPMVManager()
+                    except:
+                        pass
+                
+                indexer = ImageIndexer(model_manager, vector_db, vlm_manager)
+                
+                # 进度回调
+                def progress_callback(current, total, message):
+                    logger.info(f"索引进度: {current}/{total} - {message}")
+                
+                # 执行索引
+                result = indexer.index_folder(
+                    folder_path,
+                    folder_id,
+                    progress_callback=progress_callback
+                )
+                
+                # 更新文件夹状态
+                folder_manager.update_stats(
+                    folder_id,
+                    indexed_count=result['success']
+                )
+                folder_manager.set_folder_status(folder_id, 'active')
+                
+                logger.info(f"✅ 文件夹索引完成: {folder['name']}, 成功: {result['success']}")
+                
+            except Exception as e:
+                logger.error(f"索引任务失败: {e}")
+                folder_manager.set_folder_status(folder_id, 'error')
+        
+        # 添加后台任务
+        background_tasks.add_task(index_task)
+        
+        return {
+            "status": "started",
+            "message": f"文件夹索引任务已启动: {folder['name']}",
+            "folder_id": folder_id
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"触发索引失败: {e}")
+        raise HTTPException(status_code=500, detail=f"触发索引失败: {str(e)}")
+

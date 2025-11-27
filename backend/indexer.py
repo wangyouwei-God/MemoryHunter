@@ -222,4 +222,154 @@ class ImageIndexer:
             self.logger.error(f"❌ 索引失败: {photo_path}")
         
         return success
+    
+    def index_folder(
+        self,
+        folder_path: Path,
+        folder_id: str,
+        progress_callback: Optional[Callable[[int, int, str], None]] = None
+    ) -> dict:
+        """
+        索引特定文件夹（Phase 3）
+        
+        带完整的错误处理、进度跟踪和元数据增强
+        
+        Args:
+            folder_path: 文件夹路径
+            folder_id: 文件夹ID（用于元数据标记）
+            progress_callback: 进度回调 (current, total, status_message)
+        
+        Returns:
+            索引结果统计
+        """
+        from .scanner import FolderScanner
+        from .utils import get_current_timestamp
+        
+        scanner = FolderScanner(self.db)
+        
+        # 阶段1: 扫描文件夹
+        self.logger.info(f"📂 开始扫描文件夹: {folder_path}")
+        if progress_callback:
+            progress_callback(0, 100, "正在扫描文件夹...")
+        
+        valid_images, scan_errors = scanner.scan_folder(
+            folder_path,
+            check_duplicates=True,
+            verify_images=True
+        )
+        
+        total = len(valid_images)
+        
+        if total == 0:
+            self.logger.warning("未找到有效图片")
+            return {
+                'total': 0,
+                'success': 0,
+                'failed': 0,
+                'skipped': 0,
+                'scan_errors': len(scan_errors),
+                'errors': scan_errors
+            }
+        
+        # 阶段2: 索引图片
+        self.logger.info(f"🔄 开始索引 {total} 张图片...")
+        
+        success_count = 0
+        failed_count = 0
+        index_errors = []
+        
+        for i, img_info in enumerate(valid_images):
+            try:
+                # 更新进度
+                if progress_callback:
+                    progress_callback(
+                        i + 1,
+                        total,
+                        f"正在索引: {img_info['filename']} ({i+1}/{total})"
+                    )
+                
+                # 再次检查文件是否存在（可能在扫描后被删除）
+                file_path = Path(img_info['path'])
+                if not file_path.exists():
+                    self.logger.warning(f"文件已被删除: {file_path}")
+                    failed_count += 1
+                    index_errors.append(f"文件不存在: {img_info['filename']}")
+                    continue
+                
+                # 加载图片
+                image = Image.open(file_path).convert("RGB")
+                
+                # 1. 视觉编码（CLIP）
+                visual_embedding = self.model.encode_image(image)
+                
+                # 2. VLM 深度分析（如果启用）
+                vlm_result = None
+                if ENABLE_VLM and self.vlm is not None:
+                    try:
+                        vlm_result = self.vlm.analyze_image(image)
+                    except Exception as e:
+                        self.logger.warning(f"VLM 分析失败: {e}")
+                
+                # 3. 构建增强的元数据（Phase 3）
+                metadata = {
+                    'path': img_info['path'],
+                    'filename': img_info['filename'],
+                    'file_hash': img_info['file_hash'],
+                    'file_size': img_info['file_size'],
+                    'last_modified': img_info['last_modified'],
+                    'indexed_at': get_current_timestamp(),
+                    'folder_id': folder_id,
+                    'exists': True
+                }
+                
+                # 添加VLM结果
+                if vlm_result:
+                    metadata.update({
+                        'description': vlm_result.get('description', ''),
+                        'ocr_text': vlm_result.get('ocr_text', ''),
+                        'tags': ','.join(vlm_result.get('tags', [])),
+                        'vlm_analyzed': True
+                    })
+                else:
+                    metadata['vlm_analyzed'] = False
+                
+                # 4. 存入数据库
+                self.db.add_images(
+                    paths=[img_info['path']],
+                    embeddings=[visual_embedding.tolist()],
+                    metadatas=[metadata]
+                )
+                
+                success_count += 1
+                self.logger.debug(f"[{i+1}/{total}] ✅ {img_info['filename']}")
+                
+            except Exception as e:
+                failed_count += 1
+                error_msg = f"索引失败 {img_info['filename']}: {str(e)}"
+                index_errors.append(error_msg)
+                self.logger.warning(f"[{i+1}/{total}] ❌ {error_msg}")
+                # 继续处理下一张，不中断
+                continue
+            
+            finally:
+                # 定期垃圾回收
+                if (i + 1) % GC_THRESHOLD == 0:
+                    gc.collect()
+        
+        result = {
+            'total': total,
+            'success': success_count,
+            'failed': failed_count,
+            'skipped': 0,
+            'scan_errors': len(scan_errors),
+            'index_errors': len(index_errors),
+            'errors': scan_errors + index_errors
+        }
+        
+        self.logger.info(
+            f"✅ 文件夹索引完成! "
+            f"成功: {success_count}, 失败: {failed_count}, 扫描错误: {len(scan_errors)}"
+        )
+        
+        return result
 
