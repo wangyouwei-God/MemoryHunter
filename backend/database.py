@@ -6,7 +6,7 @@ ChromaDB 向量数据库封装
 import chromadb
 from chromadb.config import Settings
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from .config import CHROMA_DIR
 
 logger = logging.getLogger(__name__)
@@ -139,6 +139,7 @@ class VectorDatabase:
             logger.error(f"清空数据库失败: {e}")
             raise
     
+    
     def check_image_exists(self, path: str) -> bool:
         """检查图片是否已索引"""
         try:
@@ -147,3 +148,135 @@ class VectorDatabase:
             return len(result['ids']) > 0
         except:
             return False
+    
+    def check_hash_exists(self, file_hash: str) -> Optional[str]:
+        """
+        检查文件哈希是否已存在
+        
+        Args:
+            file_hash: 文件MD5哈希值
+        
+        Returns:
+            如果存在返回文件路径，否则返回 None
+        """
+        try:
+            results = self.collection.get(
+                where={"file_hash": file_hash},
+                limit=1
+            )
+            if results['ids'] and len(results['ids']) > 0:
+                return results['metadatas'][0].get('path')
+            return None
+        except Exception as e:
+            logger.error(f"检查哈希失败: {e}")
+            return None
+    
+    def mark_file_deleted(self, file_id: str) -> bool:
+        """
+        标记文件为已删除（不实际删除向量）
+        
+        Args:
+            file_id: 文件ID
+        
+        Returns:
+            是否标记成功
+        """
+        try:
+            self.collection.update(
+                ids=[file_id],
+                metadatas=[{"exists": False}]
+            )
+            logger.debug(f"文件已标记为删除: {file_id}")
+            return True
+        except Exception as e:
+            logger.error(f"标记文件删除失败: {e}")
+            return False
+    
+    def get_deleted_files(self) -> List[Dict[str, Any]]:
+        """
+        获取所有被标记为已删除的文件
+        
+        Returns:
+            已删除文件列表
+        """
+        try:
+            results = self.collection.get(
+                where={"exists": False}
+            )
+            
+            deleted_files = []
+            if results['ids']:
+                for i, file_id in enumerate(results['ids']):
+                    deleted_files.append({
+                        'id': file_id,
+                        'path': results['metadatas'][i].get('path', 'unknown'),
+                        'filename': results['metadatas'][i].get('filename', 'unknown')
+                    })
+            
+            return deleted_files
+        except Exception as e:
+            logger.error(f"获取已删除文件失败: {e}")
+            return []
+    
+    def cleanup_deleted_files(self, auto_remove: bool = False) -> Dict[str, Any]:
+        """
+        清理已删除的文件记录
+        
+        Args:
+            auto_remove: 是否自动删除（True）或仅返回列表（False）
+        
+        Returns:
+            清理结果统计
+        """
+        try:
+            deleted_files = self.get_deleted_files()
+            count = len(deleted_files)
+            
+            if auto_remove and count > 0:
+                ids_to_delete = [f['id'] for f in deleted_files]
+                self.collection.delete(ids=ids_to_delete)
+                logger.info(f"✅ 已清理 {count} 个已删除文件的记录")
+                return {
+                    'cleaned': count,
+                    'deleted_files': deleted_files
+                }
+            else:
+                return {
+                    'cleaned': 0,
+                    'found': count,
+                    'deleted_files': deleted_files
+                }
+        
+        except Exception as e:
+            logger.error(f"清理失败: {e}")
+            return {'cleaned': 0, 'found': 0, 'deleted_files': [], 'error': str(e)}
+    
+    def get_all_records(self, limit: int = None) -> List[Dict[str, Any]]:
+        """
+        获取所有记录（用于健康检查）
+        
+        Args:
+            limit: 限制数量，None表示全部
+        
+        Returns:
+            所有记录列表
+        """
+        try:
+            if limit:
+                results = self.collection.get(limit=limit)
+            else:
+                results = self.collection.get()
+            
+            records = []
+            if results['ids']:
+                for i, file_id in enumerate(results['ids']):
+                    records.append({
+                        'id': file_id,
+                        'metadata': results['metadatas'][i]
+                    })
+            
+            return records
+        except Exception as e:
+            logger.error(f"获取所有记录失败: {e}")
+            return []
+
