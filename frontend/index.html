@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MemoryHunter 📸 | 智能相册搜索</title>
+    <title>MemoryHunter | AI智能相册搜索</title>
+    
+    <!-- Google Fonts - Premium Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -15,32 +21,74 @@
         <!-- 头部 -->
         <header class="header">
             <h1 class="title">
-                <span class="icon">📸</span>
-                MemoryHunter
+                <!-- 相机SVG图标 -->
+                <svg class="title-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 3H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" stroke="url(#paint0_linear)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="12" cy="13" r="4" stroke="url(#paint1_linear)" stroke-width="2"/>
+                    <defs>
+                        <linearGradient id="paint0_linear" x1="1" y1="3" x2="23" y2="21" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#667eea"/>
+                            <stop offset="1" stop-color="#f093fb"/>
+                        </linearGradient>
+                        <linearGradient id="paint1_linear" x1="8" y1="13" x2="16" y2="13" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#764ba2"/>
+                            <stop offset="1" stop-color="#f093fb"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <span class="title-text">MemoryHunter</span>
             </h1>
-            <p class="subtitle">基于 AI 的中文语义搜图系统</p>
+            <p class="subtitle">AI驱动的智能相册语义搜索系统</p>
+            <div class="tech-badge">
+                <span class="badge-item">Chinese-CLIP Large</span>
+                <span class="badge-divider">•</span>
+                <span class="badge-item">Mini-CPM-V</span>
+                <span class="badge-divider">•</span>
+                <span class="badge-item">GPU加速</span>
+            </div>
         </header>
 
         <!-- 统计信息卡片 -->
         <div class="stats-card">
             <div class="stat-item">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+                        <path d="M21 15L16 10L5 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
                 <div class="stat-label">已索引图片</div>
                 <div class="stat-value" id="totalImages">0</div>
             </div>
             <div class="stat-item">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
                 <div class="stat-label">索引状态</div>
-                <div class="stat-value" id="indexStatus">就绪</div>
+                <div class="stat-value stat-value-text" id="indexStatus">就绪</div>
             </div>
             <div class="stat-item">
-                <div class="stat-label">模型</div>
-                <div class="stat-value">Chinese-CLIP</div>
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-label">AI模型</div>
+                <div class="stat-value stat-value-text">CLIP-Large</div>
             </div>
         </div>
 
         <!-- 索引控制区 -->
         <div class="index-section">
             <button id="indexBtn" class="btn btn-primary">
-                <span id="indexBtnText">🔄 开始索引</span>
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0118.8-4.3M22 12.5a10 10 0 01-18.8 4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span id="indexBtnText">开始索引</span>
             </button>
             <div id="indexProgress" class="progress-container" style="display: none;">
                 <div class="progress-bar">
@@ -54,24 +102,47 @@
         <div class="search-section">
             <form id="searchForm" class="search-form">
                 <div class="search-input-group">
-                    <input 
-                        type="text" 
-                        id="queryInput" 
-                        class="search-input" 
-                        placeholder="🔍 输入中文描述，例如：蓝色的裙子、夕阳海滩、那只橘猫..."
-                        required
-                    >
-                    <button type="submit" class="btn btn-search">搜索</button>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                            <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <input 
+                            type="text" 
+                            id="queryInput" 
+                            class="search-input" 
+                            placeholder="输入中文描述搜索，例如：蓝色的裙子、夕阳海滩、那只橘猫..."
+                            required
+                        >
+                    </div>
+                    <button type="submit" class="btn btn-search">
+                        <span>搜索</span>
+                        <svg class="btn-icon-right" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
                 </div>
                 
                 <!-- 高级选项 -->
                 <div class="advanced-options">
                     <div class="option-group">
-                        <label for="topK">返回数量: <span id="topKValue">20</span></label>
+                        <label for="topK">
+                            <svg class="label-icon" viewBox="0 0 24 24" fill="none">
+                                <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            返回数量
+                            <span class="option-value" id="topKValue">20</span>
+                        </label>
                         <input type="range" id="topK" min="1" max="50" value="20" class="slider">
                     </div>
                     <div class="option-group">
-                        <label for="threshold">相似度阈值: <span id="thresholdValue">0.0</span></label>
+                        <label for="threshold">
+                            <svg class="label-icon" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2v20M17 7l-5-5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            相似度阈值
+                            <span class="option-value" id="thresholdValue">0.0</span>
+                        </label>
                         <input type="range" id="threshold" min="0" max="1" step="0.05" value="0.0" class="slider">
                     </div>
                 </div>
@@ -90,13 +161,22 @@
         <!-- 加载动画 -->
         <div id="loadingOverlay" class="loading-overlay" style="display: none;">
             <div class="loading-spinner"></div>
-            <p class="loading-text">正在搜索...</p>
+            <p class="loading-text">AI正在搜索中</p>
         </div>
     </div>
 
     <!-- Footer -->
     <footer class="footer">
-        <p>🤖 Powered by Chinese-CLIP & ChromaDB | 100% 本地运行，隐私安全</p>
+        <div class="footer-content">
+            <p class="footer-text">
+                <svg class="footer-icon" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Powered by Chinese-CLIP & ChromaDB
+            </p>
+            <p class="footer-subtext">100% 本地运行 · 数据隐私安全</p>
+        </div>
     </footer>
 
     <script src="/static/app.js"></script>
