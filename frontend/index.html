@@ -164,195 +164,198 @@
         </div>
 
         <!-- 加载动画 -->
-        <!DOCTYPE html>
-        <html lang="zh-CN">
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="loading-spinner"></div>
+            <!DOCTYPE html>
+            <html lang="zh-CN">
 
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>MemoryHunter 📸 | 智能相册搜索</title>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>MemoryHunter 📸 | 智能相册搜索</title>
 
-            <!-- Google Fonts - Premium Typography -->
-            <link rel="preconnect" href="https://fonts.googleapis.com">
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-            <link
-                href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600&display=swap"
-                rel="stylesheet">
+                <!-- Google Fonts - Premium Typography -->
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link
+                    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600&display=swap"
+                    rel="stylesheet">
 
-            <link rel="stylesheet" href="/static/style.css">
-        </head>
+                <link rel="stylesheet" href="/static/style.css">
+            </head>
 
-        <body>
-            <!-- 背景渐变 -->
-            <div class="gradient-bg"></div>
+            <body>
+                <!-- 背景渐变 -->
+                <div class="gradient-bg"></div>
 
-            <!-- 主容器 -->
-            <div class="container">
-                <!-- 头部 -->
-                <header class="header">
-                    <h1 class="title">
-                        <!-- 相机SVG图标 -->
-                        <svg class="title-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 3H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z"
-                                stroke="url(#paint0_linear)" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                            <circle cx="12" cy="13" r="4" stroke="url(#paint1_linear)" stroke-width="2" />
-                            <defs>
-                                <linearGradient id="paint0_linear" x1="1" y1="3" x2="23" y2="21"
-                                    gradientUnits="userSpaceOnUse">
-                                    <stop stop-color="#667eea" />
-                                    <stop offset="1" stop-color="#f093fb" />
-                                </linearGradient>
-                                <linearGradient id="paint1_linear" x1="8" y1="13" x2="16" y2="13"
-                                    gradientUnits="userSpaceOnUse">
-                                    <stop stop-color="#764ba2" />
-                                    <stop offset="1" stop-color="#f093fb" />
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                        <span class="title-text">MemoryHunter</span>
-                    </h1>
-                    <p class="subtitle">最智能的相册检索系统</p>
-                </header>
-
-                <!-- 仪表盘统计 -->
-                <div class="dashboard">
-                    <div class="dashboard-item">
-                        <div class="gauge-container">
-                            <svg class="gauge" viewBox="0 0 200 120">
+                <!-- 主容器 -->
+                <div class="container">
+                    <!-- 头部 -->
+                    <header class="header">
+                        <h1 class="title">
+                            <!-- 相机SVG图标 -->
+                            <svg class="title-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 3H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z"
+                                    stroke="url(#paint0_linear)" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <circle cx="12" cy="13" r="4" stroke="url(#paint1_linear)" stroke-width="2" />
                                 <defs>
-                                    <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stop-color="#667eea" />
-                                        <stop offset="100%" stop-color="#f093fb" />
+                                    <linearGradient id="paint0_linear" x1="1" y1="3" x2="23" y2="21"
+                                        gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#667eea" />
+                                        <stop offset="1" stop-color="#f093fb" />
+                                    </linearGradient>
+                                    <linearGradient id="paint1_linear" x1="8" y1="13" x2="16" y2="13"
+                                        gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#764ba2" />
+                                        <stop offset="1" stop-color="#f093fb" />
                                     </linearGradient>
                                 </defs>
-                                <!-- 背景弧线 -->
-                                <path class="gauge-bg" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke-width="12"
-                                    stroke-linecap="round" />
-                                <!-- 进度弧线 -->
-                                <path id="gaugeProgress" class="gauge-progress" d="M 20 100 A 80 80 0 0 1 180 100"
-                                    fill="none" stroke-width="12" stroke-linecap="round" />
-                                <!-- 中心圆点 -->
-                                <circle cx="100" cy="100" r="4" class="gauge-center" />
                             </svg>
-                            <div class="gauge-value">
-                                <span id="totalImages" class="gauge-number">0</span>
-                                <span class="gauge-unit">张</span>
-                            </div>
-                        </div>
-                        <div class="dashboard-label">已索引图片</div>
-                    </div>
+                            <span class="title-text">MemoryHunter</span>
+                        </h1>
+                        <p class="subtitle">最智能的相册检索系统</p>
+                    </header>
 
-                    <div class="dashboard-item">
-                        <div class="status-indicator">
-                            <div class="status-ring">
-                                <div class="status-pulse"></div>
-                                <div class="status-dot"></div>
-                            </div>
-                        </div>
-                        <div class="dashboard-label" id="indexStatus">系统就绪</div>
-                    </div>
-                </div>
-
-                <!-- 索引控制区 -->
-                <div class="index-section">
-                    <button id="indexBtn" class="btn btn-index">
-                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none">
-                            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0118.8-4.3M22 12.5a10 10 0 01-18.8 4.2"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        <span id="indexBtnText">开始索引</span>
-                    </button>
-                    <div id="indexProgress" class="progress-container" style="display: none;">
-                        <div class="progress-bar">
-                            <div id="progressFill" class="progress-fill"></div>
-                        </div>
-                        <div id="progressText" class="progress-text">0 / 0</div>
-                    </div>
-                </div>
-
-                <!-- 搜索区 -->
-                <div class="search-section">
-                    <form id="searchForm" class="search-form">
-                        <div class="search-input-group">
-                            <div class="input-wrapper">
-                                <svg class="input-icon" viewBox="0 0 24 24" fill="none">
-                                    <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
-                                    <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" />
+                    <!-- 仪表盘统计 -->
+                    <div class="dashboard">
+                        <div class="dashboard-item">
+                            <div class="gauge-container">
+                                <svg class="gauge" viewBox="0 0 200 120">
+                                    <defs>
+                                        <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stop-color="#667eea" />
+                                            <stop offset="100%" stop-color="#f093fb" />
+                                        </linearGradient>
+                                    </defs>
+                                    <!-- 背景弧线 -->
+                                    <path class="gauge-bg" d="M 20 100 A 80 80 0 0 1 180 100" fill="none"
+                                        stroke-width="12" stroke-linecap="round" />
+                                    <!-- 进度弧线 -->
+                                    <path id="gaugeProgress" class="gauge-progress" d="M 20 100 A 80 80 0 0 1 180 100"
+                                        fill="none" stroke-width="12" stroke-linecap="round" />
+                                    <!-- 中心圆点 -->
+                                    <circle cx="100" cy="100" r="4" class="gauge-center" />
                                 </svg>
-                                <input type="text" id="queryInput" class="search-input"
-                                    placeholder="输入中文描述搜索，例如：蓝色的裙子、夕阳海滩、那只橘猫..." required>
+                                <div class="gauge-value">
+                                    <span id="totalImages" class="gauge-number">0</span>
+                                    <span class="gauge-unit">张</span>
+                                </div>
                             </div>
-                            <button type="submit" class="btn btn-search">
-                                <span>搜索</span>
-                                <svg class="btn-icon-right" viewBox="0 0 24 24" fill="none">
-                                    <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                            </button>
+                            <div class="dashboard-label">已索引图片</div>
                         </div>
 
-                        <!-- 高级选项 -->
-                        <div class="advanced-options">
-                            <div class="option-group">
-                                <label for="topK">
-                                    <svg class="label-icon" viewBox="0 0 24 24" fill="none">
-                                        <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2"
+                        <div class="dashboard-item">
+                            <div class="status-indicator">
+                                <div class="status-ring">
+                                    <div class="status-pulse"></div>
+                                    <div class="status-dot"></div>
+                                </div>
+                            </div>
+                            <div class="dashboard-label" id="indexStatus">系统就绪</div>
+                        </div>
+                    </div>
+
+                    <!-- 索引控制区 -->
+                    <div class="index-section">
+                        <button id="indexBtn" class="btn btn-index">
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none">
+                                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0118.8-4.3M22 12.5a10 10 0 01-18.8 4.2"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                            <span id="indexBtnText">开始索引</span>
+                        </button>
+                        <div id="indexProgress" class="progress-container" style="display: none;">
+                            <div class="progress-bar">
+                                <div id="progressFill" class="progress-fill"></div>
+                            </div>
+                            <div id="progressText" class="progress-text">0 / 0</div>
+                        </div>
+                    </div>
+
+                    <!-- 搜索区 -->
+                    <div class="search-section">
+                        <form id="searchForm" class="search-form">
+                            <div class="search-input-group">
+                                <div class="input-wrapper">
+                                    <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                                        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+                                        <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2"
                                             stroke-linecap="round" />
                                     </svg>
-                                    返回数量
-                                    <span class="option-value" id="topKValue">20</span>
-                                </label>
-                                <input type="range" id="topK" min="1" max="50" value="20" class="slider">
-                            </div>
-                            <div class="option-group">
-                                <label for="threshold">
-                                    <svg class="label-icon" viewBox="0 0 24 24" fill="none">
-                                        <path d="M12 2v20M17 7l-5-5-5 5" stroke="currentColor" stroke-width="2"
+                                    <input type="text" id="queryInput" class="search-input"
+                                        placeholder="输入中文描述搜索，例如：蓝色的裙子、夕阳海滩、那只橘猫..." required>
+                                </div>
+                                <button type="submit" class="btn btn-search">
+                                    <span>搜索</span>
+                                    <svg class="btn-icon-right" viewBox="0 0 24 24" fill="none">
+                                        <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2"
                                             stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
-                                    相似度阈值
-                                    <span class="option-value" id="thresholdValue">0.0</span>
-                                </label>
-                                <input type="range" id="threshold" min="0" max="1" step="0.05" value="0.0"
-                                    class="slider">
+                                </button>
                             </div>
-                        </div>
-                    </form>
-                </div>
 
-                <!-- 搜索结果 -->
-                <div id="resultsSection" class="results-section" style="display: none;">
-                    <div class="results-header">
-                        <h2>搜索结果</h2>
-                        <p id="resultsCount" class="results-count"></p>
+                            <!-- 高级选项 -->
+                            <div class="advanced-options">
+                                <div class="option-group">
+                                    <label for="topK">
+                                        <svg class="label-icon" viewBox="0 0 24 24" fill="none">
+                                            <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" />
+                                        </svg>
+                                        返回数量
+                                        <span class="option-value" id="topKValue">20</span>
+                                    </label>
+                                    <input type="range" id="topK" min="1" max="50" value="20" class="slider">
+                                </div>
+                                <div class="option-group">
+                                    <label for="threshold">
+                                        <svg class="label-icon" viewBox="0 0 24 24" fill="none">
+                                            <path d="M12 2v20M17 7l-5-5-5 5" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        相似度阈值
+                                        <span class="option-value" id="thresholdValue">0.0</span>
+                                    </label>
+                                    <input type="range" id="threshold" min="0" max="1" step="0.05" value="0.0"
+                                        class="slider">
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                    <div id="resultsGrid" class="results-grid"></div>
+
+                    <!-- 搜索结果 -->
+                    <div id="resultsSection" class="results-section" style="display: none;">
+                        <div class="results-header">
+                            <h2>搜索结果</h2>
+                            <p id="resultsCount" class="results-count"></p>
+                        </div>
+                        <div id="resultsGrid" class="results-grid"></div>
+                    </div>
+
+                    <!-- 加载动画 -->
+                    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+                        <div class="loading-spinner"></div>
+                        <p class="loading-text">AI正在搜索中</p>
+                    </div>
                 </div>
 
-                <!-- 加载动画 -->
-                <div id="loadingOverlay" class="loading-overlay" style="display: none;">
-                    <div class="loading-spinner"></div>
-                    <p class="loading-text">AI正在搜索中</p>
-                </div>
-            </div>
+                <!-- Footer -->
+                <footer class="footer">
+                    <div class="footer-content">
+                        <p class="footer-text">
+                            <svg class="footer-icon" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            100% 本地运行 · 数据隐私安全
+                        </p>
+                    </div>
+                </footer>
 
-            <!-- Footer -->
-            <footer class="footer">
-                <div class="footer-content">
-                    <p class="footer-text">
-                        <svg class="footer-icon" viewBox="0 0 24 24" fill="none">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        100% 本地运行 · 数据隐私安全
-                    </p>
-                </div>
-            </footer>
+                <script src="/static/app.js"></script>
+            </body>
 
-            <script src="/static/app.js"></script>
-        </body>
-
-        </html>
+            </html>
