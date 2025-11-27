@@ -45,6 +45,10 @@ app = FastAPI(
 from .folder_routes import router as folder_router
 app.include_router(folder_router)
 
+# Phase 5: 引入维护和健康检查路由
+from .maintenance_routes import router as maintenance_router
+app.include_router(maintenance_router)
+
 # ============ 全局组件初始化 ============
 logger.info("🚀 正在启动 MemoryHunter V2.0...")
 

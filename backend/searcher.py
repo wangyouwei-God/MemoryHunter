@@ -61,20 +61,51 @@ class ImageSearcher:
     
     def _search_single(self, query_text: str, top_k: int, threshold: float) -> List[Dict[str, Any]]:
         """单查询搜索 (原始方法)"""
+        from pathlib import Path
+        
         self.logger.info(f"🔍 搜索查询: '{query_text}' (Top-{top_k}, 阈值: {threshold})") 
         
         # 文本编码
         query_embedding = self.model.encode_text(query_text)
         
-        # 向量检索
-        results = self.db.search(
+        # 向量检索（请求更多结果以补偿可能被过滤的删除文件）
+        raw_results = self.db.search(
             query_embedding=query_embedding.tolist(),
-            top_k=top_k,
+            top_k=top_k * 2,  # 请求2倍数量
             threshold=threshold
         )
         
-        self.logger.info(f"✅ 找到 {len(results)} 个相关结果")
-        return results
+        # Phase 4: 验证文件存在性
+        valid_results = []
+        invalid_ids = []
+        
+        for result in raw_results:
+            file_path = Path(result['path'])
+            
+            # 检查文件是否存在
+            if file_path.exists():
+                valid_results.append(result)
+            else:
+                # 文件已被删除，标记
+                self.logger.debug(f"文件不存在，已标记: {result['path']}")
+                # 从元数据中获取ID（如果有）
+                if 'id' in result:
+                    invalid_ids.append(result['id'])
+        
+        # 异步标记已删除的文件（不阻塞搜索）
+        if invalid_ids:
+            try:
+                for file_id in invalid_ids:
+                    self.db.mark_file_deleted(file_id)
+                self.logger.info(f"⚠️ 已标记 {len(invalid_ids)} 个已删除文件")
+            except Exception as e:
+                self.logger.warning(f"标记删除文件失败: {e}")
+        
+        # 截取到请求的数量
+        valid_results = valid_results[:top_k]
+        
+        self.logger.info(f"✅ 找到 {len(valid_results)} 个有效结果（过滤了 {len(invalid_ids)} 个已删除文件）")
+        return valid_results
     
     def _search_with_expansion(self, query_text: str, top_k: int, threshold: float) -> List[Dict[str, Any]]:
         """多查询融合搜索 (Phase 1优化)"""
