@@ -31,11 +31,11 @@ VLM_DEVICE = "cuda"                        # 启用GPU加速
 TOP_K = 20                                 # 默认返回结果数量
 SIMILARITY_THRESHOLD = 0.0                 # 相似度阈值 (0.0-1.0)
 
-# V2.0 混合检索权重 (Phase 1优化)
+# V2.0 混合检索权重 (仅CLIP+VLM)
 HYBRID_SEARCH_WEIGHTS = {
-    "visual": 0.35,      # 视觉相似度权重 (CLIP)
-    "semantic": 0.35,    # 语义相似度权重 (VLM)
-    "keyword": 0.30,     # 关键词匹配权重 (提升精确匹配)
+    "visual": 0.50,      # CLIP视觉相似度 (提升权重)
+    "semantic": 0.50,    # VLM语义相似度 (提升权重)
+    # keyword已移除 - 纯AI评分
 }
 
 # ============ 图片格式 ============
