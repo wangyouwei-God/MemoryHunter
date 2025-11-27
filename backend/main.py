@@ -41,6 +41,10 @@ app = FastAPI(
     version="2.0.0"
 )
 
+# Phase 2: 引入文件夹管理路由
+from .folder_routes import router as folder_router
+app.include_router(folder_router)
+
 # ============ 全局组件初始化 ============
 logger.info("🚀 正在启动 MemoryHunter V2.0...")
 
