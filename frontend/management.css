@@ -1,0 +1,536 @@
+/* ============================================
+   Phase 6: 文件夹管理和维护面板样式
+   ============================================ */
+
+/* 模态框基础样式 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    max-width: 90%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+}
+
+.folder-browser {
+    width: 700px;
+}
+
+.modal-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 0.5rem;
+    line-height: 1;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    color: var(--danger);
+    transform: rotate(90deg);
+}
+
+.modal-footer {
+    padding: 1.5rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+/* 面包屑导航 */
+.breadcrumb {
+    padding: 1rem 2rem;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.breadcrumb-item {
+    background: none;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.breadcrumb-item:hover {
+    background: var(--card-bg);
+}
+
+.breadcrumb-item.active {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.breadcrumb-separator {
+    color: var(--text-muted);
+}
+
+/* 文件夹列表 */
+.folder-list {
+    padding: 1rem 2rem;
+    overflow-y: auto;
+    max-height: 400px;
+    min-height: 200px;
+}
+
+.folder-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.folder-item:hover:not(.disabled) {
+    background: var(--bg-secondary);
+    border-color: var(--primary);
+}
+
+.folder-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.folder-icon {
+    font-size: 2rem;
+}
+
+.folder-details {
+    flex: 1;
+}
+
+.folder-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.folder-meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.folder-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* 管理面板 */
+.management-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 500px;
+    height: 100vh;
+    background: var(--card-bg);
+    box-shadow: -5px 0 30px rgba(0, 0, 0, 0.3);
+    z-index: 9998;
+    display: flex;
+    flex-direction: column;
+    animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+.panel-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.panel-actions {
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem;
+}
+
+/* 文件夹卡片 */
+.folder-card {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+}
+
+.folder-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.folder-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.folder-card-icon {
+    font-size: 2rem;
+}
+
+.folder-card-info {
+    flex: 1;
+}
+
+.folder-card-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.folder-card-path {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    word-break: break-all;
+}
+
+.folder-card-status {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.folder-card-status.pending {
+    background: rgba(255, 193, 7, 0.1);
+    color: var(--warning);
+}
+
+.folder-card-status.indexing {
+    background: rgba(25, 118, 210, 0.1);
+    color: var(--info);
+}
+
+.folder-card-status.active {
+    background: rgba(76, 175, 80, 0.1);
+    color: var(--success);
+}
+
+.folder-card-status.error {
+    background: rgba(244, 67, 54, 0.1);
+    color: var(--danger);
+}
+
+.folder-card-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: var(--card-bg);
+    border-radius: 8px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.stat-value-small {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text);
+}
+
+.folder-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* 维护面板特定样式 */
+.maintenance-section {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border);
+}
+
+.maintenance-section h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+}
+
+.section-desc {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.health-results,
+.cleanup-results {
+    margin: 1rem 0;
+}
+
+.health-report {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.health-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-box {
+    text-align: center;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 2px solid var(--border);
+}
+
+.stat-box.success {
+    border-color: var(--success);
+}
+
+.stat-box.warning {
+    border-color: var(--warning);
+}
+
+.stat-box.danger {
+    border-color: var(--danger);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.health-recommendations {
+    background: var(--bg-secondary);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.health-recommendations h5 {
+    margin: 0 0 0.5rem 0;
+}
+
+.health-recommendations ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.health-recommendations li {
+    margin-bottom: 0.5rem;
+}
+
+.cleanup-preview {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.preview-header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.preview-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.preview-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    background: var(--bg-secondary);
+}
+
+.file-icon {
+    font-size: 1.5rem;
+}
+
+.file-name {
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.file-path-small {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.preview-more {
+    text-align: center;
+    padding: 1rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* 消息样式 */
+.info-message,
+.error-message,
+.success-message {
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.info-message {
+    background: rgba(25, 118, 210, 0.1);
+    color: var(--info);
+    border: 1px solid var(--info);
+}
+
+.error-message {
+    background: rgba(244, 67, 54, 0.1);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+}
+
+.success-message {
+    background: rgba(76, 175, 80, 0.1);
+    color: var(--success);
+    border: 1px solid var(--success);
+}
+
+/* 空状态 */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+}
+
+/* 按钮组 */
+.button-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* 小按钮 */
+.btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+}
+
+/* 图标按钮 */
+.btn-icon {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    border-radius: 6px;
+}
+
+.btn-icon:hover {
+    background: var(--bg-secondary);
+    color: var(--text);
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+    .management-panel {
+        width: 100%;
+    }
+
+    .folder-browser {
+        width: 95%;
+    }
+
+    .health-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .folder-card-stats {
+        grid-template-columns: 1fr;
+    }
+}
