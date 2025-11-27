@@ -67,13 +67,17 @@ async function loadStats() {
         const response = await fetch(`${API_BASE}/api/stats`);
         const data = await response.json();
 
-        // 更新统计数字
-        elements.totalImages.textContent = data.total_images;
+        // 更新统计数字和仪表盘动画
+        const totalImages = data.total_images;
+        elements.totalImages.textContent = totalImages;
+
+        // 更新仪表盘进度 (假设最大值500张图片，可调整)
+        updateGauge(totalImages, 500);
 
         // 更新索引状态
         if (data.indexing_status.is_indexing) {
-            elements.indexStatus.textContent = '索引中...';
-            elements.indexStatus.style.color = 'var(--warning)';
+            elements.indexStatus.textContent = '正在索引';
+            elements.indexStatus.classList.add('status-indexing');
 
             // 显示进度
             showProgress(
@@ -81,16 +85,35 @@ async function loadStats() {
                 data.indexing_status.total
             );
         } else {
-            elements.indexStatus.textContent = data.indexing_status.message || '就绪';
-            elements.indexStatus.style.color = 'var(--success)';
+            elements.indexStatus.textContent = '系统就绪';
+            elements.indexStatus.classList.remove('status-indexing');
             hideProgress();
         }
 
     } catch (error) {
         console.error('加载统计信息失败:', error);
         elements.indexStatus.textContent = '连接失败';
-        elements.indexStatus.style.color = 'var(--danger)';
+        elements.indexStatus.classList.add('status-error');
     }
+}
+
+/**
+ * 更新仪表盘进度
+ */
+function updateGauge(current, max) {
+    const gaugeProgress = document.getElementById('gaugeProgress');
+    if (!gaugeProgress) return;
+
+    // 计算百分比 (0-1)
+    const percentage = Math.min(current / max, 1);
+
+    // 弧线总长度 (半圆周长的一半)
+    const totalLength = 251.2;
+
+    // 计算 stroke-dashoffset (从右往左填充)
+    const offset = totalLength * (1 - percentage);
+
+    gaugeProgress.style.strokeDashoffset = offset;
 }
 
 /**
@@ -99,7 +122,7 @@ async function loadStats() {
 async function handleIndex() {
     try {
         elements.indexBtn.disabled = true;
-        elements.indexBtnText.textContent = '⏳ 正在启动索引...';
+        elements.indexBtnText.textContent = '正在启动索引...';
 
         const response = await fetch(`${API_BASE}/api/index`, {
             method: 'POST'
@@ -122,7 +145,7 @@ async function handleIndex() {
         console.error('启动索引失败:', error);
         showNotification(`索引启动失败: ${error.message}`, 'error');
         elements.indexBtn.disabled = false;
-        elements.indexBtnText.textContent = '🔄 开始索引';
+        elements.indexBtnText.textContent = '开始索引';
     }
 }
 
@@ -137,12 +160,12 @@ function pollIndexStatus() {
 
             if (status.is_indexing) {
                 showProgress(status.progress, status.total);
-                elements.indexBtnText.textContent = `⏳ 索引中 ${status.progress}/${status.total}`;
+                elements.indexBtnText.textContent = `索引中 ${status.progress}/${status.total}`;
             } else {
                 clearInterval(interval);
                 hideProgress();
                 elements.indexBtn.disabled = false;
-                elements.indexBtnText.textContent = '🔄 开始索引';
+                elements.indexBtnText.textContent = '开始索引';
 
                 // 刷新统计
                 loadStats();
@@ -151,7 +174,7 @@ function pollIndexStatus() {
             console.error('获取索引状态失败:', error);
             clearInterval(interval);
             elements.indexBtn.disabled = false;
-            elements.indexBtnText.textContent = '🔄 开始索引';
+            elements.indexBtnText.textContent = '开始索引';
         }
     }, 1000);
 }

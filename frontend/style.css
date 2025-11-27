@@ -114,7 +114,7 @@ body {
 /* ============ Header ============ */
 .header {
     text-align: center;
-    margin-bottom: 4rem;
+    margin-bottom: 3rem;
     animation: fadeInDown 0.8s ease-out;
 }
 
@@ -131,9 +131,9 @@ body {
 }
 
 .title {
-    font-size: 4.5rem;
+    font-size: 4rem;
     font-weight: 900;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -142,8 +142,8 @@ body {
 }
 
 .title-icon {
-    width: 64px;
-    height: 64px;
+    width: 56px;
+    height: 56px;
     filter: drop-shadow(0 4px 20px rgba(102, 126, 234, 0.5));
     animation: iconFloat 3s ease-in-out infinite;
 }
@@ -169,40 +169,21 @@ body {
 
 .subtitle {
     color: var(--text-secondary);
-    font-size: 1.15rem;
-    font-weight: 500;
-    margin-bottom: 1.5rem;
-    letter-spacing: 0.01em;
-}
-
-.tech-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.65rem 1.5rem;
-    background: rgba(102, 126, 234, 0.1);
-    border: 1px solid rgba(102, 126, 234, 0.2);
-    border-radius: 50px;
-    font-size: 0.875rem;
+    font-size: 1.375rem;
     font-weight: 600;
-    color: var(--text-secondary);
-    letter-spacing: 0.5px;
+    letter-spacing: 0.02em;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.8), rgba(240, 147, 251, 0.8));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-.badge-item {
-    color: rgba(240, 147, 251, 0.9);
-}
-
-.badge-divider {
-    color: rgba(102, 126, 234, 0.4);
-}
-
-/* ============ Stats Card ============ */
-.stats-card {
+/* ============ Dashboard ============ */
+.dashboard {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-    margin-bottom: 3rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2.5rem;
+    margin-bottom: 2.5rem;
     animation: fadeInUp 0.8s ease-out 0.2s both;
 }
 
@@ -218,19 +199,19 @@ body {
     }
 }
 
-.stat-item {
+.dashboard-item {
     background: var(--glass-bg);
     backdrop-filter: blur(10px);
     border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    padding: 2rem;
+    border-radius: 24px;
+    padding: 2.5rem;
     text-align: center;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
     overflow: hidden;
 }
 
-.stat-item::before {
+.dashboard-item::before {
     content: '';
     position: absolute;
     top: 0;
@@ -241,67 +222,173 @@ body {
     transition: left 0.5s;
 }
 
-.stat-item:hover::before {
+.dashboard-item:hover::before {
     left: 100%;
 }
 
-.stat-item:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 12px 48px rgba(102, 126, 234, 0.4);
-    border-color: rgba(102, 126, 234, 0.5);
+.dashboard-item:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 48px rgba(102, 126, 234, 0.3);
+    border-color: rgba(102, 126, 234, 0.4);
 }
 
-.stat-icon {
-    width: 40px;
-    height: 40px;
-    margin: 0 auto 1rem;
-    color: var(--primary);
-    filter: drop-shadow(0 2px 8px rgba(102, 126, 234, 0.3));
+/* ============ Gauge (仪表盘) ============ */
+.gauge-container {
+    position: relative;
+    width: 200px;
+    height: 120px;
+    margin: 0 auto 1.5rem;
 }
 
-.stat-icon svg {
+.gauge {
     width: 100%;
     height: 100%;
 }
 
-.stat-label {
-    color: var(--text-muted);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    margin-bottom: 0.875rem;
+.gauge-bg {
+    stroke: rgba(102, 126, 234, 0.15);
 }
 
-.stat-value {
+.gauge-progress {
+    stroke: url(#gaugeGradient);
+    stroke-dasharray: 251.2;
+    stroke-dashoffset: 251.2;
+    transition: stroke-dashoffset 1s ease-out;
+    filter: drop-shadow(0 0 8px rgba(102, 126, 234, 0.6));
+}
+
+.gauge-center {
+    fill: var(--primary);
+    filter: drop-shadow(0 0 4px rgba(102, 126, 234, 0.8));
+}
+
+.gauge-value {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+}
+
+.gauge-number {
+    font-size: 2.5rem;
+    font-weight: 900;
+    font-family: 'JetBrains Mono', monospace;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    font-size: 2.75rem;
-    font-weight: 900;
-    letter-spacing: -0.03em;
-    font-feature-settings: 'tnum';
+    letter-spacing: -0.02em;
 }
 
-.stat-value-text {
-    font-size: 1.375rem;
+.gauge-unit {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* ============ Status Indicator (状态指示器) ============ */
+.status-indicator {
+    margin: 1.5rem auto 2rem;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-ring {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(102, 126, 234, 0.1), transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-pulse {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid var(--primary);
+    animation: pulse-ring 2s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: scale(0.8);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.4);
+        opacity: 0;
+    }
+}
+
+.status-dot {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    box-shadow: 0 0 30px rgba(102, 126, 234, 0.8),
+        inset 0 0 20px rgba(255, 255, 255, 0.3);
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 30px rgba(102, 126, 234, 0.8),
+            inset 0 0 20px rgba(255, 255, 255, 0.3);
+    }
+
+    50% {
+        transform: scale(1.1);
+        box-shadow: 0 0 40px rgba(102, 126, 234, 1),
+            inset 0 0 20px rgba(255, 255, 255, 0.5);
+    }
+}
+
+.dashboard-label {
+    color: var(--text-secondary);
+    font-size: 1rem;
     font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
 }
 
 /* ============ Index Section ============ */
 .index-section {
-    margin-bottom: 3rem;
+    margin-bottom: 2.5rem;
     animation: fadeInUp 0.8s ease-out 0.3s both;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.btn-index {
+    padding: 0.875rem 2rem;
+    font-size: 0.9375rem;
+    max-width: 200px;
 }
 
 .progress-container {
     margin-top: 1.5rem;
+    width: 100%;
+    max-width: 600px;
 }
 
 .progress-bar {
     width: 100%;
-    height: 12px;
+    height: 10px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     overflow: hidden;
@@ -319,8 +406,9 @@ body {
 .progress-text {
     text-align: center;
     color: var(--text-secondary);
-    font-size: 1rem;
+    font-size: 0.9375rem;
     font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
 }
 
 /* ============ Search Section ============ */
@@ -446,14 +534,11 @@ body {
 }
 
 .btn-primary,
-.btn-search {
+.btn-search,
+.btn-index {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     box-shadow: 0 8px 24px rgba(102, 126, 234, 0.35);
-}
-
-.btn-primary {
-    width: 100%;
 }
 
 .btn-search {
@@ -463,7 +548,8 @@ body {
 }
 
 .btn-primary:hover,
-.btn-search:hover {
+.btn-search:hover,
+.btn-index:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
 }
@@ -746,8 +832,8 @@ body {
 
 /* ============ Responsive Design ============ */
 @media (max-width: 1024px) {
-    .stats-card {
-        grid-template-columns: repeat(2, 1fr);
+    .dashboard {
+        grid-template-columns: 1fr;
     }
 
     .results-grid {
@@ -771,11 +857,10 @@ body {
     }
 
     .subtitle {
-        font-size: 1rem;
+        font-size: 1.125rem;
     }
 
-    .stats-card {
-        grid-template-columns: 1fr;
+    .dashboard {
         gap: 1.5rem;
     }
 
