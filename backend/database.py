@@ -6,6 +6,7 @@ ChromaDB 向量数据库封装
 import chromadb
 from chromadb.config import Settings
 import logging
+import hashlib
 from typing import List, Dict, Any
 from .config import CHROMA_DIR
 
@@ -44,6 +45,23 @@ class VectorDatabase:
             logger.error(f"❌ ChromaDB 初始化失败: {e}")
             raise
     
+    def _generate_image_id(self, path: str) -> str:
+        """
+        生成稳定且唯一的图片ID
+        
+        使用MD5而非hash()以确保:
+        1. 跨平台/跨会话稳定性
+        2. 无碰撞风险（MD5碰撞概率极低）
+        3. 同一路径始终生成相同ID
+        
+        Args:
+            path: 图片文件路径
+            
+        Returns:
+            32位十六进制MD5字符串
+        """
+        return hashlib.md5(path.encode('utf-8')).hexdigest()
+    
     def add_images(self, paths: List[str], embeddings: List[List[float]], metadatas: List[Dict[str, Any]]):
         """
         批量添加图片向量
@@ -54,8 +72,8 @@ class VectorDatabase:
             metadatas: 元数据列表
         """
         try:
-            # 使用路径的哈希作为 ID（确保唯一性）
-            ids = [str(abs(hash(p))) for p in paths]
+            # 使用MD5生成稳定唯一的ID
+            ids = [self._generate_image_id(p) for p in paths]
             
             self.collection.add(
                 ids=ids,
@@ -140,10 +158,26 @@ class VectorDatabase:
             raise
     
     def check_image_exists(self, path: str) -> bool:
-        """检查图片是否已索引"""
+        """
+        检查图片是否已索引
+        
+        Args:
+            path: 图片文件路径
+            
+        Returns:
+            True if exists, False otherwise
+        """
         try:
-            image_id = str(abs(hash(path)))
+            image_id = self._generate_image_id(path)
             result = self.collection.get(ids=[image_id])
-            return len(result['ids']) > 0
-        except:
+            exists = len(result['ids']) > 0
+            
+            if exists:
+                logger.debug(f"图片已存在: {path} (ID: {image_id[:8]}...)")
+            
+            return exists
+            
+        except Exception as e:
+            logger.warning(f"检查图片存在性失败 {path}: {e}")
+            # 保守策略: 出错时返回False，由add()去检测重复
             return False
