@@ -162,12 +162,13 @@ class GlobalAIProcessor:
             logger.error(f"Object detection failed: {e}")
             return []
     
-    def analyze_image_with_vlm(self, image_path: str) -> Dict[str, str]:
+    def analyze_image_with_vlm(self, image_path: str, timeout_seconds: int = 30) -> Dict[str, str]:
         """
-        使用 MiniCPM-V 分析图片,生成描述和OCR (支持中英文)
+        使用 MiniCPM-V 分析图片,生成描述和OCR (支持中英文 + 超时保护)
         
         Args:
             image_path: 图片路径
+            timeout_seconds: 超时时间(秒),默认30秒
             
         Returns:
             {caption: str, ocr_text: str}
@@ -186,14 +187,25 @@ class GlobalAIProcessor:
             # 调用 VLM (参考 MiniCPM-V 官方API)
             msgs = [{'role': 'user', 'content': question}]
             
-            # 生成回答
-            response = self.vlm_model.chat(
-                image=image,
-                msgs=msgs,
-                tokenizer=self.vlm_tokenizer,
-                sampling=True,
-                temperature=0.7
-            )
+            # 使用多线程实现超时保护
+            from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
+            
+            def _inference():
+                return self.vlm_model.chat(
+                    image=image,
+                    msgs=msgs,
+                    tokenizer=self.vlm_tokenizer,
+                    sampling=True,
+                    temperature=0.7
+                )
+            
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(_inference)
+                try:
+                    response = future.result(timeout=timeout_seconds)
+                except FutureTimeoutError:
+                    logger.warning(f"VLM inference timeout after {timeout_seconds}s for {Path(image_path).name}")
+                    return {"caption": "", "ocr_text": ""}
             
             # 解析输出 (根据语言使用不同的标记)
             caption = ""
@@ -223,10 +235,15 @@ class GlobalAIProcessor:
         except Exception as e:
             logger.error(f"VLM analysis failed: {e}")
             return {"caption": "", "ocr_text": ""}
+        finally:
+            # 清理GPU缓存,防止显存泄漏
+            if self.device == "cuda":
+                import torch
+                torch.cuda.empty_cache()
     
     def process_image(self, image_path: str) -> Dict[str, Any]:
         """
-        完整处理一张图片: YOLO + VLM
+        完整处理一张图片: YOLO + VLM (带GPU清理)
         
         Args:
             image_path: 图片路径
@@ -238,19 +255,27 @@ class GlobalAIProcessor:
                 ocr_text: str
             }
         """
-        logger.info(f"Processing image: {Path(image_path).name}")
-        
-        # Step 1: 物体检测
-        objects = self.detect_objects(image_path)
-        
-        # Step 2: VLM 深度分析
-        vlm_result = self.analyze_image_with_vlm(image_path)
-        
-        return {
-            "objects": objects,
-            "caption": vlm_result["caption"],
-            "ocr_text": vlm_result["ocr_text"]
-        }
+        try:
+            logger.info(f"Processing image: {Path(image_path).name}")
+            
+            # Step 1: 物体检测
+            objects = self.detect_objects(image_path)
+            
+            # Step 2: VLM 深度分析 (含超时保护)
+            vlm_result = self.analyze_image_with_vlm(image_path, timeout_seconds=30)
+            
+            return {
+                "objects": objects,
+                "caption": vlm_result["caption"],
+                "ocr_text": vlm_result["ocr_text"]
+            }
+        finally:
+            # 每张图处理完后清理GPU缓存
+            if self.device == "cuda":
+                import torch
+                torch.cuda.empty_cache()
+                import gc
+                gc.collect()
 
 
 # 全局单例实例

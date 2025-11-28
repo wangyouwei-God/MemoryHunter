@@ -63,7 +63,7 @@ class ImageIndexer:
         return photos
     
     def index_all(self, progress_callback: Optional[Callable[[int, int], None]] = None) -> dict:
-        """索引所有图片"""
+        """索引所有图片 (支持取消)"""
         photos = self.scan_photos()
         total = len(photos)
         
@@ -77,6 +77,15 @@ class ImageIndexer:
         self.logger.info(f"开始索引 {total} 张图片...")
         
         for i, photo_path in enumerate(photos):
+            # 检查取消标志 (从main.py导入)
+            try:
+                from .main import cancel_indexing_flag
+                if cancel_indexing_flag:
+                    self.logger.info(f"索引已被用户取消 (处理了 {i}/{total} 张)")
+                    break
+            except ImportError:
+                pass  # 单元测试时可能无法导入
+            
             try:
                 # 检查是否已索引
                 if self.db.check_image_exists(str(photo_path)):
@@ -98,8 +107,14 @@ class ImageIndexer:
                 
             finally:
                 if progress_callback: progress_callback(i + 1, total)
+                
+                # V2.0 Pro: 每张图处理完后清理GPU缓存
+                if self.ai_processor and hasattr(self.ai_processor, 'device') and self.ai_processor.device == "cuda":
+                    import torch
+                    torch.cuda.empty_cache()
+                
                 # 定期清理内存
-                if (i + 1) % 20 == 0:  # Pro版显存压力大,更频繁清理
+                if (i + 1) % 20 == 0:
                     gc.collect()
         
         return {

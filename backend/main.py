@@ -104,6 +104,9 @@ indexing_status = {
     "message": "就绪"
 }
 
+# 索引取消标志
+cancel_indexing_flag = False
+
 
 # ============ Pydantic 模型 ============
 class SearchRequest(BaseModel):
@@ -149,28 +152,33 @@ async def trigger_index(background_tasks: BackgroundTasks):
     触发图片索引
     后台异步执行，立即返回
     """
-    global indexing_status
+    global indexing_status, cancel_indexing_flag
     
     if indexing_status["is_indexing"]:
         raise HTTPException(status_code=409, detail="索引正在进行中，请稍后再试")
     
     def index_task():
-        """后台索引任务"""
-        global indexing_status
+        """后台索引任务 (支持取消)"""
+        global indexing_status, cancel_indexing_flag
         
         try:
             indexing_status["is_indexing"] = True
             indexing_status["message"] = "正在索引..."
+            cancel_indexing_flag = False  # 重置取消标志
             
             def progress_callback(current, total):
                 indexing_status["progress"] = current
                 indexing_status["total"] = total
             
-            # 执行索引
+            # 执行索引 (indexer内部会检查cancel_indexing_flag)
             result = indexer.index_all(progress_callback=progress_callback)
             
             indexing_status["is_indexing"] = False
-            indexing_status["message"] = f"索引完成! 成功: {result['success']}, 失败: {result['failed']}"
+            
+            if cancel_indexing_flag:
+                indexing_status["message"] = f"索引已取消! 成功: {result['success']}, 失败: {result['failed']}"
+            else:
+                indexing_status["message"] = f"索引完成! 成功: {result['success']}, 失败: {result['failed']}"
             
         except Exception as e:
             logger.error(f"索引任务失败: {e}")
@@ -184,6 +192,22 @@ async def trigger_index(background_tasks: BackgroundTasks):
         status="started",
         message="索引任务已启动，将在后台执行"
     )
+
+
+@app.post("/api/index/cancel")
+async def cancel_index():
+    """
+    取消正在进行的索引任务
+    """
+    global cancel_indexing_flag, indexing_status
+    
+    if not indexing_status["is_indexing"]:
+        raise HTTPException(status_code=400, detail="当前没有正在进行的索引任务")
+    
+    cancel_indexing_flag = True
+    logger.info("收到索引取消请求")
+    
+    return {"status": "cancelling", "message": "正在取消索引任务..."}
 
 
 @app.get("/api/index/status")
