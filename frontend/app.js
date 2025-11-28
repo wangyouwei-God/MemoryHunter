@@ -393,3 +393,181 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// ============ Folder Management Drawer ============
+(function initFolderDrawer() {
+    const settingsBtn = document.getElementById('settingsBtn');
+    const folderDrawer = document.getElementById('folderDrawer');
+    const drawerOverlay = document.getElementById('drawerOverlay');
+    const drawerClose = document.getElementById('drawerClose');
+    const addFolderBtn = document.getElementById('addFolderBtn');
+    const addFolderForm = document.getElementById('addFolderForm');
+    const folderList = document.getElementById('folderList');
+    const cancelAddBtn = document.getElementById('cancelAddBtn');
+    const confirmAddBtn = document.getElementById('confirmAddBtn');
+    const folderPathInput = document.getElementById('folderPathInput');
+    const folderCount = document.getElementById('folderCount');
+
+    // Open drawer
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => {
+            folderDrawer.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+    }
+
+    // Close drawer
+    function closeDrawer() {
+        folderDrawer.classList.remove('active');
+        document.body.style.overflow = '';
+        // Hide form when closing drawer
+        if (addFolderForm) {
+            addFolderForm.style.display = 'none';
+        }
+    }
+
+    if (drawerOverlay) {
+        drawerOverlay.addEventListener('click', closeDrawer);
+    }
+
+    if (drawerClose) {
+        drawerClose.addEventListener('click', closeDrawer);
+    }
+
+    // ESC key to close
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && folderDrawer.classList.contains('active')) {
+            closeDrawer();
+        }
+    });
+
+    // Show add folder form
+    if (addFolderBtn) {
+        addFolderBtn.addEventListener('click', () => {
+            if (addFolderForm.style.display === 'none' || !addFolderForm.style.display) {
+                addFolderForm.style.display = 'block';
+                folderPathInput.focus();
+            } else {
+                addFolderForm.style.display = 'none';
+            }
+        });
+    }
+
+    // Cancel add folder
+    if (cancelAddBtn) {
+        cancelAddBtn.addEventListener('click', () => {
+            addFolderForm.style.display = 'none';
+            folderPathInput.value = '';
+        });
+    }
+
+    // Confirm add folder (Mock - 前端演示用)
+    if (confirmAddBtn) {
+        confirmAddBtn.addEventListener('click', () => {
+            const path = folderPathInput.value.trim();
+            if (path) {
+                // Mock: 创建新的文件夹卡片
+                const newCard = createFolderCard(path, Math.floor(Math.random() * 500) + 100, Date.now());
+                folderList.insertBefore(newCard, folderList.firstChild);
+                
+                // Update count
+                const currentCount = folderList.querySelectorAll('.folder-card').length;
+                folderCount.textContent = `${currentCount} 个文件夹`;
+                
+                // Reset form
+                folderPathInput.value = '';
+                addFolderForm.style.display = 'none';
+                
+                // Show notification (mock)
+                console.log('Added folder:', path);
+            }
+        });
+    }
+
+    // Remove folder button handlers
+    function setupRemoveButtons() {
+        const removeButtons = document.querySelectorAll('.folder-remove-btn');
+        removeButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const card = this.closest('.folder-card');
+                if (card && confirm('确定要移除此文件夹吗？')) {
+                    card.style.animation = 'slideOutRight 0.3s ease-out';
+                    setTimeout(() => {
+                        card.remove();
+                        // Update count
+                        const currentCount = folderList.querySelectorAll('.folder-card').length;
+                        folderCount.textContent = `${currentCount} 个文件夹`;
+                    }, 300);
+                }
+            });
+        });
+    }
+
+    // Create folder card element (helper function)
+    function createFolderCard(path, imageCount, id) {
+        const card = document.createElement('div');
+        card.className = 'folder-card';
+        card.setAttribute('data-folder-id', id);
+        card.innerHTML = `
+            <div class="folder-card-icon">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M3 7V17C3 18.1046 3.89543 19 5 19H19C20.1046 19 21 18.1046 21 17V9C21 7.89543 20.1046 7 19 7H13L11 5H5C3.89543 5 3 5.89543 3 7Z" stroke="url(#folderGradient${id})" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <defs>
+                        <linearGradient id="folderGradient${id}" x1="3" y1="5" x2="21" y2="19" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#667eea" />
+                            <stop offset="1" stop-color="#f093fb" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <div class="folder-card-info">
+                <div class="folder-path">${path}</div>
+                <div class="folder-stats">
+                    <span class="stat-item">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+                            <path d="M21 15L16 10L5 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        ${imageCount} 张
+                    </span>
+                    <span class="stat-item" style="color: #888;">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                            <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        未索引
+                    </span>
+                </div>
+            </div>
+            <button class="folder-remove-btn" data-folder-id="${id}" title="移除此文件夹">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        `;
+        return card;
+    }
+
+    // Slide out animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Initialize remove button handlers
+    setupRemoveButtons();
+
+    console.log('✅ Folder drawer initialized');
+})();
