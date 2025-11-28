@@ -20,7 +20,7 @@ from .models import CLIPModelManager
 from .database import VectorDatabase
 from .indexer import ImageIndexer
 from .searcher import ImageSearcher
-from .config import FRONTEND_DIR, PHOTOS_DIR, ENABLE_VLM, VLM_MODEL_NAME, VLM_USE_QUANTIZATION
+from .config import FRONTEND_DIR, PHOTOS_DIR, ENABLE_VLM
 
 # V2.0: VLM 支持
 if ENABLE_VLM:
@@ -55,10 +55,7 @@ try:
         try:
             logger.info("🔄 正在加载 Mini-CPM-V 模型...")
             vlm_manager = MiniCPMVManager()
-            vlm_manager.load_model(
-                model_name=VLM_MODEL_NAME,
-                use_quantization=VLM_USE_QUANTIZATION
-            )
+            vlm_manager.load_model()
             logger.info("✅ Mini-CPM-V 模型已加载 (V2.0 功能已启用)")
         except Exception as e:
             logger.error(f"⚠️ VLM 加载失败，将仅使用 CLIP: {e}")
