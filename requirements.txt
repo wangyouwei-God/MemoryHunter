@@ -13,9 +13,7 @@ torch==2.1.0+cu121
 torchvision==0.16.0+cu121
 
 # Transformers & Quantization
-transformers==4.3
-
-7.0
+transformers==4.37.0
 accelerate==0.26.0
 bitsandbytes==0.41.0  # Critical for Int4 quantization
 timm==0.9.10

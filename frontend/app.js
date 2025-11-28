@@ -668,12 +668,12 @@ document.head.appendChild(style);
         };
         img.src = path.startsWith('http') ? path : `/photos/${path.split('/photos/')[1] || path}`;
 
-        // Parse and display objects
+        // Parse and display objects (with error handling)
         try {
             currentObjects = typeof objects === 'string' ? JSON.parse(objects) : (objects || []);
             renderObjectTags(currentObjects);
         } catch (e) {
-            console.error('Failed to parse objects:', e);
+            console.error('Failed to parse objects JSON:', e, 'Raw data:', objects);
             currentObjects = [];
             renderObjectTags([]);
         }
@@ -785,3 +785,12 @@ document.head.appendChild(style);
 
     console.log('✅ Pro Detail Modal initialized');
 })();
+
+// Add ESC key to close Modal (UX improvement)
+document.addEventListener('keydown', function(e) {
+    const modal = document.getElementById('proDetailModal');
+    if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+        const closeBtn = document.getElementById('closeProModal');
+        if (closeBtn) closeBtn.click();
+    }
+});

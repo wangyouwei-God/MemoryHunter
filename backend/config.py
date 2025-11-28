@@ -23,6 +23,8 @@ CLIP_MODEL_NAME = "OFA-Sys/chinese-clip-vit-base-patch16"
 
 # VLM: MiniCPM-V 2.5 (Int4)
 VLM_MODEL_NAME = "openbmb/MiniCPM-V-2_5-int4"
+# VLM Prompt Language: 'zh' (Chinese) or 'en' (English)
+VLM_PROMPT_LANGUAGE = os.getenv("VLM_LANGUAGE", "zh")  # Default: Chinese
 
 # Semantic Encoder: BGE-M3 for text embedding
 BGE_MODEL_NAME = "BAAI/bge-m3"

@@ -12,6 +12,34 @@ import logging
 # 设置日志
 logger = logging.getLogger(__name__)
 
+# VLM Prompt Templates (i18n)
+VLM_PROMPTS = {
+    'zh': {
+        'question': """请详细分析这张图片:
+1. 描述画面中的主要内容、物体、人物、动作、场景和氛围
+2. 如果图片中包含文字,请完整提取出来
+
+请按照以下格式回答:
+【描述】...
+【文字】...(如果没有文字则写"无")""",
+        'description_marker': '【描述】',
+        'text_marker': '【文字】',
+        'no_text': '无'
+    },
+    'en': {
+        'question': """Analyze this image in detail:
+1. Describe the main content, objects, people, actions, scenes, and atmosphere
+2. If the image contains any text, extract it completely
+
+Please answer in the following format:
+[Description]...
+[Text]...(write "None" if no text)""",
+        'description_marker': '[Description]',
+        'text_marker': '[Text]',
+        'no_text': 'None'
+    }
+}
+
 
 class GlobalAIProcessor:
     """
@@ -39,6 +67,11 @@ class GlobalAIProcessor:
         self.vlm_model = None
         self.vlm_tokenizer = None
         self.yolo_model = None
+        
+        # VLM语言配置 (从config导入)
+        from .config import VLM_PROMPT_LANGUAGE
+        self.vlm_language = VLM_PROMPT_LANGUAGE if VLM_PROMPT_LANGUAGE in VLM_PROMPTS else 'zh'
+        logger.info(f"VLM Prompt Language: {self.vlm_language}")
         
         self._initialized = True
         
@@ -131,7 +164,7 @@ class GlobalAIProcessor:
     
     def analyze_image_with_vlm(self, image_path: str) -> Dict[str, str]:
         """
-        使用 MiniCPM-V 分析图片,生成描述和OCR
+        使用 MiniCPM-V 分析图片,生成描述和OCR (支持中英文)
         
         Args:
             image_path: 图片路径
@@ -146,14 +179,9 @@ class GlobalAIProcessor:
         try:
             image = Image.open(image_path).convert('RGB')
             
-            # Prompt 设计: 要求详细描述 + OCR
-            question = """请详细分析这张图片:
-1. 描述画面中的主要内容、物体、人物、动作、场景和氛围
-2. 如果图片中包含文字,请完整提取出来
-
-请按照以下格式回答:
-【描述】...
-【文字】...(如果没有文字则写"无")"""
+            # 获取当前语言的Prompt模板
+            prompt_template = VLM_PROMPTS.get(self.vlm_language, VLM_PROMPTS['zh'])
+            question = prompt_template['question']
             
             # 调用 VLM (参考 MiniCPM-V 官方API)
             msgs = [{'role': 'user', 'content': question}]
@@ -167,25 +195,29 @@ class GlobalAIProcessor:
                 temperature=0.7
             )
             
-            # 解析输出
+            # 解析输出 (根据语言使用不同的标记)
             caption = ""
             ocr_text = ""
             
-            if "【描述】" in response:
-                parts = response.split("【描述】")
+            desc_marker = prompt_template['description_marker']
+            text_marker = prompt_template['text_marker']
+            no_text_keyword = prompt_template['no_text']
+            
+            if desc_marker in response:
+                parts = response.split(desc_marker)
                 if len(parts) > 1:
-                    desc_part = parts[1].split("【文字】")[0].strip()
+                    desc_part = parts[1].split(text_marker)[0].strip()
                     caption = desc_part
                     
-                if "【文字】" in response:
-                    ocr_part = response.split("【文字】")[1].strip()
-                    if ocr_part and ocr_part != "无":
+                if text_marker in response:
+                    ocr_part = response.split(text_marker)[1].strip()
+                    if ocr_part and ocr_part.lower() != no_text_keyword.lower():
                         ocr_text = ocr_part
             else:
                 # 兜底: 如果解析失败,整个回答作为描述
                 caption = response.strip()
             
-            logger.debug(f"VLM analysis complete for {Path(image_path).name}")
+            logger.debug(f"VLM analysis complete for {Path(image_path).name} (lang: {self.vlm_language})")
             return {"caption": caption, "ocr_text": ocr_text}
             
         except Exception as e:
