@@ -5,6 +5,7 @@ const i18n = {
     translations: {
         zh: {
             subtitle: '最智能的相册检索系统',
+            unit: '张',
             indexedImages: '已索引图片',
             systemStatus: '系统就绪',
             startIndex: '开始索引',
@@ -13,6 +14,8 @@ const i18n = {
             searchBtn: '搜索',
             returnCount: '返回数量',
             similarityThreshold: '相似度阈值',
+            searchResults: '搜索结果',
+            searching: 'AI正在搜索中',
             localPrivacy: '100% 本地运行 · 数据隐私安全',
             version: '轻量版',
             // Folder drawer
@@ -29,10 +32,31 @@ const i18n = {
             cancel: '取消',
             confirmAdd: '确认添加',
             removeFolderConfirm: '确定要移除此文件夹吗？',
-            settings: '设置'
+            settings: '设置',
+            // Dynamic content templates
+            foundResults: '找到 {count} 个相关结果',
+            resultsQuery: '找到 {count} 个相关结果，查询: "{query}"',
+            indexProgress: '已完成 {current} / {total}',
+            indexingProgress: '索引中 {current}/{total}',
+            folderCountText: '{count} 个文件夹',
+            // Error messages & notifications
+            connectionFailed: '连接失败',
+            indexingNow: '正在索引',
+            startingIndex: '正在启动索引...',
+            indexTaskStarted: '索引任务已启动，将在后台执行',
+            indexStartFailed: '索引启动失败',
+            searchFailed: '搜索失败',
+            pleaseEnterSearch: '请输入搜索内容',
+            noResults: '未找到相关图片',
+            tryOtherKeywords: '试试其他搜索词或降低相似度阈值',
+            similarity: '相似度',
+            imageLoadFailed: '图片加载失败',
+            folderAdded: '文件夹已添加',
+            notIndexedYet: '未索引'
         },
         en: {
             subtitle: 'Smart Photo Search System',
+            unit: '',
             indexedImages: 'Indexed Photos',
             systemStatus: 'Ready',
             startIndex: 'Start Indexing',
@@ -41,13 +65,15 @@ const i18n = {
             searchBtn: 'Search',
             returnCount: 'Results',
             similarityThreshold: 'Similarity',
+            searchResults: 'Search Results',
+            searching: 'AI is searching',
             localPrivacy: '100% Local · Privacy Secured',
             version: 'Lite Edition',
             // Folder drawer
             folderManagement: 'Folder Management',
             monitoredFolders: 'Monitored Folders',
             folders: 'folders',
-            images: 'images',
+            images: '',
             indexed: 'Indexed',
             notIndexed: 'Not Indexed',
             addFolder: 'Add Folder',
@@ -57,7 +83,27 @@ const i18n = {
             cancel: 'Cancel',
             confirmAdd: 'Confirm',
             removeFolderConfirm: 'Remove this folder?',
-            settings: 'Settings'
+            settings: 'Settings',
+            // Dynamic content templates
+            foundResults: 'Found {count} results',
+            resultsQuery: 'Found {count} results for: "{query}"',
+            indexProgress: 'Completed {current} / {total}',
+            indexingProgress: 'Indexing {current}/{total}',
+            folderCountText: '{count} folders',
+            // Error messages & notifications
+            connectionFailed: 'Connection Failed',
+            indexingNow: 'Indexing',
+            startingIndex: 'Starting index...',
+            indexTaskStarted: 'Index task started in background',
+            indexStartFailed: 'Failed to start indexing',
+            searchFailed: 'Search failed',
+            pleaseEnterSearch: 'Please enter search keywords',
+            noResults: 'No results found',
+            tryOtherKeywords: 'Try different keywords or lower the similarity threshold',
+            similarity: 'Similarity',
+            imageLoadFailed: 'Image load failed',
+            folderAdded: 'Folder added',
+            notIndexedYet: 'Not indexed'
         }
     },
 
@@ -91,6 +137,9 @@ const i18n = {
             langText.textContent = this.currentLang === 'zh' ? 'EN' : '中';
         }
 
+        // Dispatch event for dynamic content updates
+        window.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang: this.currentLang } }));
+
         // 更新标题(如果需要保持MemoryHunter不翻译)
         const subtitle = document.querySelector('.subtitle');
         if (subtitle) {
@@ -98,6 +147,18 @@ const i18n = {
         }
 
         console.log(`✅ Language switched to: ${this.currentLang}`);
+    },
+
+    // 翻译辅助函数 - 用于JavaScript中动态生成的文本
+    t(key, params = {}) {
+        let text = this.translations[this.currentLang][key] || key;
+
+        // 替换参数 {count}, {current}, {total} 等
+        Object.keys(params).forEach(param => {
+            text = text.replace(new RegExp(`\\{${param}\\}`, 'g'), params[param]);
+        });
+
+        return text;
     },
 
     // 保存语言偏好到localStorage

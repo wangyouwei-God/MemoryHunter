@@ -76,7 +76,7 @@ async function loadStats() {
 
         // 更新索引状态
         if (data.indexing_status.is_indexing) {
-            elements.indexStatus.textContent = '正在索引';
+            elements.indexStatus.textContent = i18n.t('indexingNow');
             elements.indexStatus.classList.add('status-indexing');
 
             // 显示进度
@@ -85,14 +85,14 @@ async function loadStats() {
                 data.indexing_status.total
             );
         } else {
-            elements.indexStatus.textContent = '系统就绪';
+            elements.indexStatus.textContent = i18n.t('systemStatus');
             elements.indexStatus.classList.remove('status-indexing');
             hideProgress();
         }
 
     } catch (error) {
         console.error('加载统计信息失败:', error);
-        elements.indexStatus.textContent = '连接失败';
+        elements.indexStatus.textContent = i18n.t('connectionFailed');
         elements.indexStatus.classList.add('status-error');
     }
 }
@@ -122,7 +122,7 @@ function updateGauge(current, max) {
 async function handleIndex() {
     try {
         elements.indexBtn.disabled = true;
-        elements.indexBtnText.textContent = '正在启动索引...';
+        elements.indexBtnText.textContent = i18n.t('startingIndex');
 
         const response = await fetch(`${API_BASE}/api/index`, {
             method: 'POST'
@@ -136,7 +136,7 @@ async function handleIndex() {
         const data = await response.json();
 
         // 显示成功消息
-        showNotification('索引任务已启动，将在后台执行', 'success');
+        showNotification(i18n.t('indexTaskStarted'), 'success');
 
         // 开始轮询状态
         pollIndexStatus();
@@ -145,7 +145,7 @@ async function handleIndex() {
         console.error('启动索引失败:', error);
         showNotification(`索引启动失败: ${error.message}`, 'error');
         elements.indexBtn.disabled = false;
-        elements.indexBtnText.textContent = '开始索引';
+        elements.indexBtnText.textContent = i18n.t('startIndex');
     }
 }
 
@@ -160,12 +160,12 @@ function pollIndexStatus() {
 
             if (status.is_indexing) {
                 showProgress(status.progress, status.total);
-                elements.indexBtnText.textContent = `索引中 ${status.progress}/${status.total}`;
+                elements.indexBtnText.textContent = i18n.t("indexingProgress", { current: status.progress, total: status.total });
             } else {
                 clearInterval(interval);
                 hideProgress();
                 elements.indexBtn.disabled = false;
-                elements.indexBtnText.textContent = '开始索引';
+                elements.indexBtnText.textContent = i18n.t('startIndex');
 
                 // 刷新统计
                 loadStats();
@@ -174,7 +174,7 @@ function pollIndexStatus() {
             console.error('获取索引状态失败:', error);
             clearInterval(interval);
             elements.indexBtn.disabled = false;
-            elements.indexBtnText.textContent = '开始索引';
+            elements.indexBtnText.textContent = i18n.t('startIndex');
         }
     }, 1000);
 }
@@ -187,7 +187,7 @@ async function handleSearch(e) {
 
     const query = elements.queryInput.value.trim();
     if (!query) {
-        showNotification('请输入搜索内容', 'warning');
+        showNotification(i18n.t('pleaseEnterSearch'), 'warning');
         return;
     }
 
@@ -248,8 +248,8 @@ function displayResults(data) {
         elements.resultsGrid.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">
                 <p style="font-size: 3rem; margin-bottom: 1rem;">🔍</p>
-                <p style="font-size: 1.2rem;">未找到相关图片</p>
-                <p style="font-size: 0.9rem; margin-top: 0.5rem;">试试其他搜索词或降低相似度阈值</p>
+                <p style="font-size: 1.2rem;">${i18n.t('noResults')}</p>
+                <p style="font-size: 0.9rem; margin-top: 0.5rem;">${i18n.t('tryOtherKeywords')}</p>
             </div>
         `;
         return;
@@ -282,10 +282,10 @@ function createResultCard(result, index) {
             alt="${result.filename}" 
             class="result-image"
             loading="lazy"
-            onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22280%22 height=%22220%22%3E%3Crect fill=%22%231e293b%22 width=%22280%22 height=%22220%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-family=%22sans-serif%22%3E图片加载失败%3C/text%3E%3C/svg%3E'"
+            onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22280%22 height=%22220%22%3E%3Crect fill=%22%231e293b%22 width=%22280%22 height=%22220%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-family=%22sans-serif%22%3E${i18n.t('imageLoadFailed')}%3C/text%3E%3C/svg%3E'"
         >
         <div class="result-info">
-            <div class="result-score">相似度: ${(result.score * 100).toFixed(1)}%</div>
+            <div class="result-score">${i18n.t('similarity')}: ${(result.score * 100).toFixed(1)}%</div>
             <div class="result-filename" title="${result.filename}">${result.filename}</div>
         </div>
     `;
@@ -469,15 +469,15 @@ document.head.appendChild(style);
                 // Mock: 创建新的文件夹卡片
                 const newCard = createFolderCard(path, Math.floor(Math.random() * 500) + 100, Date.now());
                 folderList.insertBefore(newCard, folderList.firstChild);
-                
+
                 // Update count
                 const currentCount = folderList.querySelectorAll('.folder-card').length;
-                folderCount.textContent = `${currentCount} 个文件夹`;
-                
+                folderCount.textContent = i18n.t('folderCountText', { count: currentCount });
+
                 // Reset form
                 folderPathInput.value = '';
                 addFolderForm.style.display = 'none';
-                
+
                 // Show notification (mock)
                 console.log('Added folder:', path);
             }
@@ -488,16 +488,16 @@ document.head.appendChild(style);
     function setupRemoveButtons() {
         const removeButtons = document.querySelectorAll('.folder-remove-btn');
         removeButtons.forEach(btn => {
-            btn.addEventListener('click', function(e) {
+            btn.addEventListener('click', function (e) {
                 e.stopPropagation();
                 const card = this.closest('.folder-card');
-                if (card && confirm('确定要移除此文件夹吗？')) {
+                if (card && confirm(i18n.t('removeFolderConfirm'))) {
                     card.style.animation = 'slideOutRight 0.3s ease-out';
                     setTimeout(() => {
                         card.remove();
                         // Update count
                         const currentCount = folderList.querySelectorAll('.folder-card').length;
-                        folderCount.textContent = `${currentCount} 个文件夹`;
+                        folderCount.textContent = i18n.t('folderCountText', { count: currentCount });
                     }, 300);
                 }
             });
@@ -530,18 +530,18 @@ document.head.appendChild(style);
                             <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
                             <path d="M21 15L16 10L5 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        ${imageCount} 张
+                        ${imageCount} ${i18n.t('images')}
                     </span>
                     <span class="stat-item" style="color: #888;">
                         <svg viewBox="0 0 24 24" fill="none">
                             <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
                             <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         </svg>
-                        未索引
+                        ${i18n.t('notIndexedYet')}
                     </span>
                 </div>
             </div>
-            <button class="folder-remove-btn" data-folder-id="${id}" title="移除此文件夹">
+            <button class="folder-remove-btn" data-folder-id="${id}" title="${i18n.t('removeFolderTitle')}">
                 <svg viewBox="0 0 24 24" fill="none">
                     <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -568,6 +568,17 @@ document.head.appendChild(style);
 
     // Initialize remove button handlers
     setupRemoveButtons();
+
+    // Initialize folder count display
+    updateFolderCount();
+
+    // Update folder count when language changes
+    window.addEventListener('languageChanged', updateFolderCount);
+
+    function updateFolderCount() {
+        const currentCount = folderList.querySelectorAll('.folder-card').length;
+        folderCount.textContent = i18n.t('folderCountText', { count: currentCount });
+    }
 
     console.log('✅ Folder drawer initialized');
 })();

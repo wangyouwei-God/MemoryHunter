@@ -61,7 +61,7 @@
                     </button>
                 </div>
             </div>
-            <p class="subtitle">最智能的相册检索系统</p>
+            <p class="subtitle" data-i18n="subtitle">最智能的相册检索系统</p>
         </header>
 
         <!-- 仪表盘统计 -->
@@ -86,10 +86,10 @@
                     </svg>
                     <div class="gauge-value">
                         <span id="totalImages" class="gauge-number">0</span>
-                        <span class="gauge-unit">张</span>
+                        <span class="gauge-unit" data-i18n="unit">张</span>
                     </div>
                 </div>
-                <div class="dashboard-label">已索引图片</div>
+                <div class="dashboard-label" data-i18n="indexedImages">已索引图片</div>
             </div>
 
             <div class="dashboard-item">
@@ -99,7 +99,7 @@
                         <div class="status-dot"></div>
                     </div>
                 </div>
-                <div class="dashboard-label" id="indexStatus">系统就绪</div>
+                <div class="dashboard-label" id="indexStatus" data-i18n="systemStatus">系统就绪</div>
             </div>
         </div>
 
@@ -110,7 +110,7 @@
                     <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0118.8-4.3M22 12.5a10 10 0 01-18.8 4.2"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
-                <span id="indexBtnText">开始索引</span>
+                <span id="indexBtnText" data-i18n="startIndex">开始索引</span>
             </button>
             <div id="indexProgress" class="progress-container" style="display: none;">
                 <div class="progress-bar">
@@ -131,10 +131,10 @@
                                 stroke-linecap="round" />
                         </svg>
                         <input type="text" id="queryInput" class="search-input"
-                            placeholder="输入中文描述搜索，例如：蓝色的裙子、夕阳海滩、那只橘猫..." required>
+                            placeholder="输入中文描述搜索，例如：蓝色的裙子、夕阳海滩、那只橘猫..." data-i18n="searchPlaceholder" required>
                     </div>
                     <button type="submit" class="btn btn-search">
-                        <span>搜索</span>
+                        <span data-i18n="searchBtn">搜索</span>
                         <svg class="btn-icon-right" viewBox="0 0 24 24" fill="none">
                             <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2"
                                 stroke-linecap="round" stroke-linejoin="round" />
@@ -150,7 +150,7 @@
                                 <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2"
                                     stroke-linecap="round" />
                             </svg>
-                            返回数量
+                            <span data-i18n="returnCount">返回数量</span>
                             <span class="option-value" id="topKValue">20</span>
                         </label>
                         <input type="range" id="topK" min="1" max="50" value="20" class="slider">
@@ -161,7 +161,7 @@
                                 <path d="M12 2v20M17 7l-5-5-5 5" stroke="currentColor" stroke-width="2"
                                     stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
-                            相似度阈值
+                            <span data-i18n="similarityThreshold">相似度阈值</span>
                             <span class="option-value" id="thresholdValue">0.0</span>
                         </label>
                         <input type="range" id="threshold" min="0" max="1" step="0.05" value="0.0" class="slider">
@@ -173,7 +173,7 @@
         <!-- 搜索结果 -->
         <div id="resultsSection" class="results-section" style="display: none;">
             <div class="results-header">
-                <h2>搜索结果</h2>
+                <h2 data-i18n="searchResults">搜索结果</h2>
                 <p id="resultsCount" class="results-count"></p>
             </div>
             <div id="resultsGrid" class="results-grid"></div>
@@ -182,7 +182,7 @@
         <!-- 加载动画 -->
         <div id="loadingOverlay" class="loading-overlay" style="display: none;">
             <div class="loading-spinner"></div>
-            <p class="loading-text">AI正在搜索中</p>
+            <p class="loading-text" data-i18n="searching">AI正在搜索中</p>
         </div>
     </div>
 
@@ -197,7 +197,7 @@
                             d="M3 7V17C3 18.1046 3.89543 19 5 19H19C20.1046 19 21 18.1046 21 17V9C21 7.89543 20.1046 7 19 7H13L11 5H5C3.89543 5 3 5.89543 3 7Z"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
-                    文件夹管理
+                    <span data-i18n="folderManagement">文件夹管理</span>
                 </h2>
                 <button class="drawer-close" id="drawerClose">
                     <svg viewBox="0 0 24 24" fill="none">
@@ -210,8 +210,8 @@
             <div class="drawer-body">
                 <div class="folder-section">
                     <div class="section-header">
-                        <h3 class="section-title">监控目录</h3>
-                        <span class="folder-count" id="folderCount">2 个文件夹</span>
+                        <h3 class="section-title" data-i18n="monitoredFolders">监控目录</h3>
+                        <span class="folder-count" id="folderCount"></span>
                     </div>
 
                     <div class="folder-list" id="folderList">
@@ -250,7 +250,7 @@
                                             <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"
                                                 stroke-linecap="round" stroke-linejoin="round" />
                                         </svg>
-                                        已索引
+                                        <span data-i18n="indexed">已索引</span>
                                     </span>
                                 </div>
                             </div>
@@ -296,7 +296,7 @@
                                             <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"
                                                 stroke-linecap="round" stroke-linejoin="round" />
                                         </svg>
-                                        已索引
+                                        <span data-i18n="indexed">已索引</span>
                                     </span>
                                 </div>
                             </div>
@@ -314,21 +314,21 @@
                             <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                 stroke-linejoin="round" />
                         </svg>
-                        添加文件夹
+                        <span data-i18n="addFolder">添加文件夹</span>
                     </button>
                 </div>
 
                 <!-- Add Folder Form (隐藏) -->
                 <div class="add-folder-form" id="addFolderForm" style="display: none;">
-                    <h3 class="form-title">添加新文件夹</h3>
+                    <h3 class="form-title" data-i18n="addNewFolder">添加新文件夹</h3>
                     <div class="form-group">
-                        <label class="form-label">文件夹路径</label>
-                        <input type="text" class="form-input" id="folderPathInput"
-                            placeholder="例如: ~/Pictures/MyPhotos" />
+                        <label class="form-label" data-i18n="folderPath">文件夹路径</label>
+                        <input type="text" class="form-input" id="folderPathInput" placeholder="例如: ~/Pictures/MyPhotos"
+                            data-i18n="folderPathPlaceholder" />
                     </div>
                     <div class="form-actions">
-                        <button class="btn-secondary" id="cancelAddBtn">取消</button>
-                        <button class="btn-primary" id="confirmAddBtn">确认添加</button>
+                        <button class="btn-secondary" id="cancelAddBtn" data-i18n="cancel">取消</button>
+                        <button class="btn-primary" id="confirmAddBtn" data-i18n="confirmAdd">确认添加</button>
                     </div>
                 </div>
             </div>
@@ -353,7 +353,7 @@
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
-                100% 本地运行 · 数据隐私安全
+                <span data-i18n="localPrivacy">100% 本地运行 · 数据隐私安全</span>
             </p>
             <p class="footer-subtext" data-i18n="version">轻量版</p>
         </div>
