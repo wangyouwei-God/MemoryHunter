@@ -3,8 +3,8 @@ version: '3.8'
 services:
   memhunter:
     build: .
-    image: memory-hunter:v1.0
-    container_name: memory-hunter
+    image: memory-hunter:v2.0-pro
+    container_name: memory-hunter-pro
     ports:
       - "8000:8000"
     volumes:
@@ -12,18 +12,23 @@ services:
       - ~/Pictures/TestDataset:/app/photos:ro
       # 数据库持久化
       - ~/memory-hunter-data:/app/chroma_db
-    
-    environment:
-      - ENABLE_VLM=false
-      - PYTHONUNBUFFERED=1
-      # V1.0 不需要 HF_TOKEN
 
-    # V1.0 资源需求很低，4GB 足够
+    environment:
+      - ENABLE_VLM=true # V2.0 Pro: Enable VLM
+      - PYTHONUNBUFFERED=1
+      # 可选: 如果模型需要 HuggingFace token
+      # - HF_TOKEN=${HF_TOKEN}
+
+      # V2.0 Pro: GPU 支持
     deploy:
       resources:
         limits:
-          memory: 4G
+          memory: 32G # 增加内存限制以支持大模型
         reservations:
-          memory: 1G
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
 
     restart: unless-stopped

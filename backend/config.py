@@ -1,8 +1,9 @@
 """
-配置文件 (V1.0 - Mac/CPU Optimized)
-仅启用轻量级 CLIP 模型
+配置文件 (V2.0 Pro - GPU Accelerated)
+启用 VLM (MiniCPM-V) + Object Detection (YOLO) + Hybrid Search
 """
 
+import os
 from pathlib import Path
 
 # ============ 路径配置 ============
@@ -11,19 +12,35 @@ CHROMA_DIR = Path("/app/chroma_db")
 FRONTEND_DIR = Path("/app/frontend")
 
 # ============ 功能开关 ============
-# V1.0 不支持 VLM 和混合检索
-ENABLE_VLM = False
-ENABLE_HYBRID_SEARCH = False
+# V2.0 Pro: 启用 VLM 和混合检索
+ENABLE_VLM = os.getenv("ENABLE_VLM", "true").lower() == "true"
+ENABLE_HYBRID_SEARCH = True
+ENABLE_OBJECT_DETECTION = True
 
 # ============ 模型配置 ============
-# 使用 Chinese-CLIP (ViT-B/16)
-MODEL_NAME = "OFA-Sys/chinese-clip-vit-base-patch16"
-DEVICE = "cpu"                             # Mac 推荐使用 CPU
-BATCH_SIZE = 4                             # 小批次以节省内存
+# Visual Encoder: Chinese-CLIP (V1.0 兼容)
+CLIP_MODEL_NAME = "OFA-Sys/chinese-clip-vit-base-patch16"
+
+# VLM: MiniCPM-V 2.5 (Int4)
+VLM_MODEL_NAME = "openbmb/MiniCPM-V-2_5-int4"
+
+# Semantic Encoder: BGE-M3 for text embedding
+BGE_MODEL_NAME = "BAAI/bge-m3"
+
+# Object Detection: YOLOv8-X
+YOLO_MODEL_NAME = "yolov8x.pt"
+YOLO_CONF_THRESHOLD = 0.3
+
+# Device
+DEVICE = "cuda"  # V2.0 Pro requires GPU
+BATCH_SIZE = 1   # VLM 推理使用 batch_size=1 以节省显存
 
 # ============ 搜索配置 ============
-TOP_K = 20
+TOP_K = 50       # 增加召回数量以支持混合搜索
 SIMILARITY_THRESHOLD = 0.2
+
+# RRF (Reciprocal Rank Fusion) 参数
+RRF_K = 60
 
 # ============ 图片格式 ============
 SUPPORTED_FORMATS = {

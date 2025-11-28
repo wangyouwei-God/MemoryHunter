@@ -3,17 +3,40 @@ fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-multipart==0.0.6
 
-# AI/ML Libraries (Lightweight - V1.0)
-torch==2.1.0
-transformers==4.36.0
+# ========================================
+# V2.0 Pro: AI/ML Libraries (CUDA-enabled)
+# ========================================
+
+# PyTorch with CUDA 12.1 support
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch==2.1.0+cu121
+torchvision==0.16.0+cu121
+
+# Transformers & Quantization
+transformers==4.3
+
+7.0
+accelerate==0.26.0
+bitsandbytes==0.41.0  # Critical for Int4 quantization
+timm==0.9.10
+
+# Chinese-CLIP (V1.0 compatibility maintained)
 cn_clip==1.5.1
-# accelerate removed for V1
-# bitsandbytes removed for V1
 protobuf==3.20.3
+
+# YOLOv8 for Object Detection
+ultralytics==8.1.0
+
+# Sentence Transformers for BGE-M3
+sentence-transformers==2.3.0
+
+# VLM-specific dependencies (MiniCPM-V)
+decord==0.6.0
 
 # Image Processing
 pillow==10.1.0
 pillow-heif==0.13.1
+opencv-python-headless==4.8.1.78
 
 # Vector Database
 chromadb==0.4.18

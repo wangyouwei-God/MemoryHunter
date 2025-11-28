@@ -1,11 +1,13 @@
 """
-MemoryHunter FastAPI 应用 - V1.0
+MemoryHunter FastAPI 应用 - V2.0 Pro
 提供图片索引和搜索的 REST API
 
-V1.0 特性:
-- Chinese-CLIP 视觉语义搜索
-- ChromaDB 向量存储
-- CPU 优化,低配设备友好
+V2.0 Pro 特性:
+- MiniCPM-V 2.5 (Int4) 深度图片理解
+- YOLOv8-X 物体检测
+- BGE-M3 语义编码
+- 双路混合搜索 (RRF 融合)
+- ChromaDB 双集合存储
 """
 
 from fastapi import FastAPI, BackgroundTasks, HTTPException
@@ -16,11 +18,15 @@ from typing import Optional, List, Dict, Any
 import logging
 from pathlib import Path
 
-from .models import CLIPModelManager
+from .models import CLIPModelManager, BGEModelManager
 from .database import VectorDatabase
 from .indexer import ImageIndexer
 from .searcher import ImageSearcher
-from .config import FRONTEND_DIR, PHOTOS_DIR
+from .processors import get_processor
+from .config import (
+    FRONTEND_DIR, PHOTOS_DIR,
+    ENABLE_VLM, ENABLE_OBJECT_DETECTION
+)
 
 # 配置日志
 logging.basicConfig(
@@ -33,28 +39,58 @@ logger = logging.getLogger(__name__)
 # ============ FastAPI 应用 ============
 app = FastAPI(
     title="MemoryHunter API",
-    description="智能相册搜索系统 - V1.0 (Chinese-CLIP)",
-    version="1.0.0"
+    description="智能相册搜索系统 - V2.0 Pro (VLM + Hybrid Search)",
+    version="2.0.0-pro"
 )
 
 # ============ 全局组件初始化 ============
-logger.info("🚀 正在启动 MemoryHunter V1.0...")
+logger.info("�� 正在启动 MemoryHunter V2.0 Pro...")
 
 try:
-    # 初始化 CLIP 模型管理器
-    model_manager = CLIPModelManager()
+    # 1. 初始化 CLIP 模型管理器 (视觉编码)
+    clip_model = CLIPModelManager()
     logger.info("✅ Chinese-CLIP 模型已加载")
     
-    # 初始化向量数据库
+    # 2. 初始化向量数据库 (双集合)
     vector_db = VectorDatabase()
-    logger.info("✅ 向量数据库已初始化")
+    logger.info("✅ 向量数据库已初始化 (双集合模式)")
     
-    # 初始化索引器和搜索器
-    indexer = ImageIndexer(model_manager, vector_db)
-    searcher = ImageSearcher(model_manager, vector_db)
+    # 3. (可选) 初始化 Pro 组件
+    bge_model = None
+    ai_processor = None
     
-    logger.info("✅ MemoryHunter V1.0 初始化完成!")
-    logger.info("📌 V1.0 模式: 仅使用 Chinese-CLIP 视觉搜索")
+    if ENABLE_VLM:
+        try:
+            # 3a. 初始化 BGE 语义编码器
+            bge_model = BGEModelManager()
+            logger.info("✅ BGE-M3 语义编码器已加载")
+            
+            # 3b. 初始化 AI 处理器 (VLM + YOLO)
+            ai_processor = get_processor()
+            logger.info("✅ GlobalAIProcessor 已加载 (MiniCPM-V + YOLO)")
+            
+        except Exception as e:
+            logger.warning(f"⚠️ Pro 组件加载失败,将回退到 V1.0 模式: {e}")
+            bge_model = None
+            ai_processor = None
+    
+    # 4. 初始化索引器和搜索器
+    indexer = ImageIndexer(
+        visual_model=clip_model,
+        vector_db=vector_db,
+        semantic_model=bge_model,
+        ai_processor=ai_processor
+    )
+    
+    searcher = ImageSearcher(
+        visual_model=clip_model,
+        vector_db=vector_db,
+        semantic_model=bge_model
+    )
+    
+    mode_info = "V2.0 Pro (VLM + Hybrid Search)" if bge_model else "V1.0 兼容模式 (CLIP Only)"
+    logger.info(f"✅ MemoryHunter 初始化完成!")
+    logger.info(f"📌 运行模式: {mode_info}")
     
 except Exception as e:
     logger.error(f"❌ 初始化失败: {e}")
@@ -92,7 +128,9 @@ class IndexResponse(BaseModel):
 
 class StatsResponse(BaseModel):
     """统计信息响应"""
-    total_images: int
+    total_images_visual: int
+    total_images_semantic: int
+    hybrid_mode: bool
     model_info: Dict[str, Any]
     indexing_status: Dict[str, Any]
 
@@ -157,13 +195,13 @@ async def get_index_status():
 @app.post("/api/search", response_model=SearchResponse)
 async def search_images(request: SearchRequest):
     """
-    搜索图片
+    搜索图片 (自动选择混合搜索或单路搜索)
     
     Args:
         request: 搜索请求
         
     Returns:
-        搜索结果
+        搜索结果 (包含 Pro 元数据)
     """
     try:
         results = searcher.search(
@@ -188,10 +226,24 @@ async def get_stats():
     """获取系统统计信息"""
     try:
         db_stats = vector_db.get_stats()
-        model_info = model_manager.get_info()
+        
+        # 收集所有已加载模型的信息
+        model_info = {
+            "clip": clip_model.get_info()
+        }
+        
+        if bge_model:
+            model_info["bge"] = bge_model.get_info()
+        
+        if ai_processor:
+            model_info["pro_enabled"] = True
+        else:
+            model_info["pro_enabled"] = False
         
         return StatsResponse(
-            total_images=db_stats['total_images'],
+            total_images_visual=db_stats.get('total_images_visual', 0),
+            total_images_semantic=db_stats.get('total_images_semantic', 0),
+            hybrid_mode=db_stats.get('hybrid_mode', False),
             model_info=model_info,
             indexing_status=indexing_status
         )
@@ -218,8 +270,8 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "MemoryHunter",
-        "version": "1.0.0",
-        "mode": "V1.0 (CLIP Only)"
+        "version": "2.0.0-pro",
+        "mode": "Pro" if bge_model else "Lite"
     }
 
 

@@ -340,10 +340,80 @@
         <svg class="lang-icon" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
             <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
-                stroke="currentColor" stroke-width="2" />
-        </svg>
-        <span class="lang-text" id="langText">中</span>
+                <span class="lang-text" id="langText">中</span>
     </button>
+
+    <!-- Pro Detail Modal (V2.0) -->
+    <div id="proDetailModal" class="pro-modal hidden">
+        <div class="pro-modal-overlay"></div>
+        <div class="pro-modal-content">
+            <button class="pro-modal-close" id="closeProModal">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+            </button>
+
+            <div class="pro-modal-body">
+                <!-- Left: Image with Canvas Overlay -->
+                <div class="pro-image-container">
+                    <canvas id="proImageCanvas"></canvas>
+                </div>
+
+                <!-- Right: Info Panel -->
+                <div class="pro-info-panel">
+                    <h3 class="pro-panel-title" id="proImageTitle">Detail Analysis</h3>
+
+                    <!-- Tabs -->
+                    <div class="pro-tabs">
+                        <button class="pro-tab active" data-tab="objects">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor"
+                                    stroke-width="2" />
+                            </svg>
+                            <span>Objects</span>
+                        </button>
+                        <button class="pro-tab" data-tab="ocr">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" />
+                            </svg>
+                            <span>Text</span>
+                        </button>
+                    </div>
+
+                    <!-- Tab Content: Objects -->
+                    <div class="pro-tab-content active" id="tab-objects">
+                        <div class="pro-object-tags" id="proObjectTags">
+                            <!-- Dynamically populated -->
+                            <div class="pro-empty-state">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+                                    <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" />
+                                </svg>
+                                <p>No objects detected</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Content: OCR -->
+                    <div class="pro-tab-content" id="tab-ocr">
+                        <textarea id="proOcrText" class="pro-ocr-textarea" readonly
+                            placeholder="No text detected in this image"></textarea>
+                        <button id="proCopyOcr" class="pro-action-btn">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor"
+                                    stroke-width="2" />
+                                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor"
+                                    stroke-width="2" />
+                            </svg>
+                            Copy Text
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">

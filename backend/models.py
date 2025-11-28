@@ -1,12 +1,13 @@
 """
-Chinese-CLIP 模型管理器
+Chinese-CLIP 模型管理器 + BGE-M3 语义编码器 (V2.0 Pro)
 使用单例模式确保模型只被加载一次
 """
 
 import torch
 from transformers import ChineseCLIPModel, ChineseCLIPProcessor
+from sentence_transformers import SentenceTransformer
 import logging
-from .config import MODEL_NAME, DEVICE
+from .config import CLIP_MODEL_NAME, BGE_MODEL_NAME, DEVICE
 
 logger = logging.getLogger(__name__)
 
@@ -33,27 +34,26 @@ class CLIPModelManager:
     def _load_model(self):
         """加载模型和处理器"""
         try:
-            logger.info(f"正在加载模型: {MODEL_NAME}")
+            logger.info(f"正在加载模型: {CLIP_MODEL_NAME}")
             logger.info(f"设备: {DEVICE}")
             
             # 加载处理器
-            self.processor = ChineseCLIPProcessor.from_pretrained(MODEL_NAME)
+            self.processor = ChineseCLIPProcessor.from_pretrained(CLIP_MODEL_NAME)
             
             # 加载模型
-            self.model = ChineseCLIPModel.from_pretrained(MODEL_NAME)
+            self.model = ChineseCLIPModel.from_pretrained(CLIP_MODEL_NAME)
             self.model.to(DEVICE)
             self.model.eval()  # 设置为评估模式
             
-            logger.info("✅ 模型加载成功!")
+            logger.info("✅ CLIP 模型加载成功!")
             
         except Exception as e:
-            logger.error(f"❌ 模型加载失败: {e}")
+            logger.error(f"❌ CLIP 模型加载失败: {e}")
             raise
     
-    @torch.no_grad()
     def encode_image(self, image):
         """
-        编码图片为特征向量
+        编码图片
         
         Args:
             image: PIL Image 对象

@@ -290,9 +290,23 @@ function createResultCard(result, index) {
         </div>
     `;
 
-    // 添加点击放大功能
+    // 添加点击功能 - Pro模式优先打开Modal
     card.addEventListener('click', () => {
-        window.open(imageUrl, '_blank');
+        // 检查是否有Pro元数据 (objects or ocr_text)
+        const hasProData = (result.objects && result.objects !== '[]') || result.ocr_text;
+
+        if (hasProData && typeof window.openProModal === 'function') {
+            // Pro模式: 打开Modal显示详情
+            window.openProModal({
+                path: imageUrl,
+                filename: result.filename,
+                objects: result.objects || '[]',
+                ocr_text: result.ocr_text || ''
+            });
+        } else {
+            // V1.0 兼容: 新标签页打开图片
+            window.open(imageUrl, '_blank');
+        }
     });
 
     // 添加入场动画
@@ -581,4 +595,193 @@ document.head.appendChild(style);
     }
 
     console.log('✅ Folder drawer initialized');
+})();
+
+// ============================================
+// PRO DETAIL MODAL (V2.0) - Canvas & OCR
+// ============================================
+
+(function initProModal() {
+    const modal = document.getElementById('proDetailModal');
+    const closeBtn = document.getElementById('closeProModal');
+    const canvas = document.getElementById('proImageCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const tabs = document.querySelectorAll('.pro-tab');
+    const tabContents = document.querySelectorAll('.pro-tab-content');
+
+    const objectTagsContainer = document.getElementById('proObjectTags');
+    const ocrTextarea = document.getElementById('proOcrText');
+    const copyOcrBtn = document.getElementById('proCopyOcr');
+
+    let currentImage = null;
+    let currentObjects = [];
+    let highlightedObject = null;
+
+    // Tab Switching
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const targetTab = tab.dataset.tab;
+
+            // Update tabs
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            // Update content
+            tabContents.forEach(content => {
+                if (content.id === `tab-${targetTab}`) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+        });
+    });
+
+    // Close Modal
+    function closeModal() {
+        modal.classList.add('hidden');
+        currentImage = null;
+        currentObjects = [];
+        highlightedObject = null;
+    }
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.querySelector('.pro-modal-overlay').addEventListener('click', closeModal);
+
+    // Open Modal with Image Data
+    window.openProModal = function (imageData) {
+        const { path, filename, objects, ocr_text } = imageData;
+
+        // Load and draw image
+        const img = new Image();
+        img.onload = function () {
+            // Set canvas size to image size
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            // Draw image
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+
+            currentImage = img;
+        };
+        img.src = path.startsWith('http') ? path : `/photos/${path.split('/photos/')[1] || path}`;
+
+        // Parse and display objects
+        try {
+            currentObjects = typeof objects === 'string' ? JSON.parse(objects) : (objects || []);
+            renderObjectTags(currentObjects);
+        } catch (e) {
+            console.error('Failed to parse objects:', e);
+            currentObjects = [];
+            renderObjectTags([]);
+        }
+
+        // Display OCR text
+        ocrTextarea.value = ocr_text || '';
+
+        // Show modal
+        modal.classList.remove('hidden');
+    };
+
+    // Render Object Tags
+    function renderObjectTags(objects) {
+        if (!objects || objects.length === 0) {
+            objectTagsContainer.innerHTML = `
+                <div class="pro-empty-state">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <p>No objects detected</p>
+                </div>
+            `;
+            return;
+        }
+
+        objectTagsContainer.innerHTML = objects.map((obj, index) => `
+            <div class="pro-object-tag" data-obj-index="${index}">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                ${obj.label} (${(obj.score * 100).toFixed(0)}%)
+            </div>
+        `).join('');
+
+        // Add hover listeners
+        document.querySelectorAll('.pro-object-tag').forEach(tag => {
+            tag.addEventListener('mouseenter', function () {
+                const objIndex = parseInt(this.dataset.objIndex);
+                highlightObject(objIndex);
+                this.classList.add('highlighted');
+            });
+
+            tag.addEventListener('mouseleave', function () {
+                clearHighlight();
+                this.classList.remove('highlighted');
+            });
+        });
+    }
+
+    // Highlight Object on Canvas
+    function highlightObject(objIndex) {
+        if (!currentImage || !currentObjects[objIndex]) return;
+
+        highlightedObject = currentObjects[objIndex];
+
+        // Redraw image
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(currentImage, 0, 0);
+
+        // Draw bounding box
+        const box = highlightedObject.box;
+        ctx.strokeStyle = '#EF4444';
+        ctx.lineWidth = 4;
+        ctx.shadowColor = '#EF4444';
+        ctx.shadowBlur = 15;
+        ctx.strokeRect(box[0], box[1], box[2] - box[0], box[3] - box[1]);
+
+        // Reset shadow
+        ctx.shadowBlur = 0;
+
+        // Draw label
+        ctx.fillStyle = '#EF4444';
+        ctx.font = 'bold 16px Inter';
+        const labelText = `${highlightedObject.label} ${(highlightedObject.score * 100).toFixed(0)}%`;
+        const textWidth = ctx.measureText(labelText).width;
+
+        ctx.fillRect(box[0], box[1] - 25, textWidth + 16, 25);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(labelText, box[0] + 8, box[1] - 7);
+    }
+
+    // Clear Highlight
+    function clearHighlight() {
+        if (!currentImage) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(currentImage, 0, 0);
+        highlightedObject = null;
+    }
+
+    // Copy OCR Text
+    copyOcrBtn.addEventListener('click', async () => {
+        const text = ocrTextarea.value;
+
+        if (!text) {
+            showNotification(i18n.t ? i18n.t('noTextToCopy') : 'No text to copy', 'warning');
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(text);
+            showNotification(i18n.t ? i18n.t('textCopied') : 'Text copied to clipboard', 'success');
+        } catch (err) {
+            console.error('Failed to copy:', err);
+            showNotification(i18n.t ? i18n.t('copyFailed') : 'Failed to copy', 'error');
+        }
+    });
+
+    console.log('✅ Pro Detail Modal initialized');
 })();
