@@ -5,8 +5,8 @@ python-multipart==0.0.6
 
 # AI/ML Libraries (Lightweight - V1.0)
 torch==2.1.0
+transformers==4.36.0
 cn_clip==1.5.1
-# transformers removed for V1
 # accelerate removed for V1
 # bitsandbytes removed for V1
 protobuf==3.20.3
