@@ -1,11 +1,11 @@
 """
-MemoryHunter FastAPI 应用 - V2.0
+MemoryHunter FastAPI 应用 - V1.0
 提供图片索引和搜索的 REST API
 
-V2.0 新增:
-- Mini-CPM-V 深度分析
-- OCR 文字识别
-- 智能标签生成
+V1.0 特性:
+- Chinese-CLIP 视觉语义搜索
+- ChromaDB 向量存储
+- CPU 优化,低配设备友好
 """
 
 from fastapi import FastAPI, BackgroundTasks, HTTPException
@@ -20,11 +20,7 @@ from .models import CLIPModelManager
 from .database import VectorDatabase
 from .indexer import ImageIndexer
 from .searcher import ImageSearcher
-from .config import FRONTEND_DIR, PHOTOS_DIR, ENABLE_VLM
-
-# V2.0: VLM 支持
-if ENABLE_VLM:
-    from .vlm import MiniCPMVManager
+from .config import FRONTEND_DIR, PHOTOS_DIR
 
 # 配置日志
 logging.basicConfig(
@@ -37,41 +33,28 @@ logger = logging.getLogger(__name__)
 # ============ FastAPI 应用 ============
 app = FastAPI(
     title="MemoryHunter API",
-    description="智能相册搜索系统 - V2.0 (Chinese-CLIP + Mini-CPM-V)",
-    version="2.0.0"
+    description="智能相册搜索系统 - V1.0 (Chinese-CLIP)",
+    version="1.0.0"
 )
 
 # ============ 全局组件初始化 ============
-logger.info("🚀 正在启动 MemoryHunter V2.0...")
+logger.info("🚀 正在启动 MemoryHunter V1.0...")
 
 try:
-    # 初始化视觉模型管理器（CLIP，单例）
+    # 初始化 CLIP 模型管理器
     model_manager = CLIPModelManager()
-    logger.info("✅ CLIP 模型已加载")
-    
-    # V2.0: 初始化 VLM 管理器（可选）
-    vlm_manager = None
-    if ENABLE_VLM:
-        try:
-            logger.info("🔄 正在加载 Mini-CPM-V 模型...")
-            vlm_manager = MiniCPMVManager()
-            vlm_manager.load_model()
-            logger.info("✅ Mini-CPM-V 模型已加载 (V2.0 功能已启用)")
-        except Exception as e:
-            logger.error(f"⚠️ VLM 加载失败，将仅使用 CLIP: {e}")
-            vlm_manager = None
+    logger.info("✅ Chinese-CLIP 模型已加载")
     
     # 初始化向量数据库
     vector_db = VectorDatabase()
     logger.info("✅ 向量数据库已初始化")
     
-    # 初始化索引器和搜索器（传入 VLM）
-    indexer = ImageIndexer(model_manager, vector_db, vlm_manager)
+    # 初始化索引器和搜索器
+    indexer = ImageIndexer(model_manager, vector_db)
     searcher = ImageSearcher(model_manager, vector_db)
     
-    logger.info("✅ MemoryHunter V2.0 初始化完成!")
-    if ENABLE_VLM and vlm_manager:
-        logger.info("🌟 V2.0 功能：OCR识别、智能描述、自动标签 已启用")
+    logger.info("✅ MemoryHunter V1.0 初始化完成!")
+    logger.info("📌 V1.0 模式: 仅使用 Chinese-CLIP 视觉搜索")
     
 except Exception as e:
     logger.error(f"❌ 初始化失败: {e}")
@@ -232,12 +215,11 @@ async def clear_database():
 @app.get("/api/health")
 async def health_check():
     """健康检查"""
-    vlm_status = "enabled" if (ENABLE_VLM and vlm_manager is not None) else "disabled"
     return {
         "status": "healthy",
         "service": "MemoryHunter",
-        "version": "2.0.0",
-        "vlm_enabled": vlm_status
+        "version": "1.0.0",
+        "mode": "V1.0 (CLIP Only)"
     }
 
 

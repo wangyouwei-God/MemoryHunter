@@ -24,19 +24,18 @@ logger = logging.getLogger(__name__)
 class ImageIndexer:
     """图片索引器 - V1.0"""
     
-    def __init__(self, model_manager, vector_db, vlm_manager=None):
+    def __init__(self, model_manager, vector_db):
         """
-        初始化索引器
+        初始化索引器 - V1.0
         
         Args:
             model_manager: CLIPModelManager 实例
             vector_db: VectorDatabase 实例
-            vlm_manager: (V1.0 未使用，仅为了兼容接口保留参数)
         """
         self.model = model_manager
         self.db = vector_db
         self.logger = logging.getLogger(__name__)
-        self.logger.info("📌 V1.0 模式：仅使用 CLIP 进行视觉索引")
+        self.logger.info("📌 V1.0 模式：仅使用 Chinese-CLIP 进行视觉索引")
     
     def scan_photos(self) -> List[Path]:
         """扫描相册目录"""
