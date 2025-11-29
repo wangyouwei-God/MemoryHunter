@@ -55,6 +55,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 监听搜索表单
     elements.searchForm.addEventListener('submit', handleSearch);
+
+    // 初始化语言切换
+    initLanguageSwitcher();
 });
 
 // ============ API 调用 ============
@@ -582,3 +585,40 @@ document.head.appendChild(style);
 
     console.log('✅ Folder drawer initialized');
 })();
+
+// ============================================
+// LANGUAGE SWITCHER
+// ============================================
+
+function initLanguageSwitcher() {
+    const langBtn = document.getElementById('langBtn');
+    const langText = document.getElementById('langText');
+
+    if (!langBtn || !langText) {
+        console.warn('Language switcher elements not found');
+        return;
+    }
+
+    // 设置初始语言文本
+    updateLangButtonText();
+
+    // 监听点击事件
+    langBtn.addEventListener('click', () => {
+        // 切换语言
+        const newLang = i18n.currentLang === 'zh' ? 'en' : 'zh';
+        i18n.switchLanguage(newLang);
+
+        // 更新按钮文本
+        updateLangButtonText();
+
+        // 添加脉冲动画
+        langBtn.classList.add('pulse');
+        setTimeout(() => langBtn.classList.remove('pulse'), 2000);
+    });
+
+    function updateLangButtonText() {
+        langText.textContent = i18n.currentLang === 'zh' ? '中' : 'EN';
+    }
+
+    console.log('✅ Language switcher initialized');
+}
