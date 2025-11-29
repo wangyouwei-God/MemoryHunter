@@ -7,25 +7,35 @@ services:
     container_name: memory-hunter-pro
     ports:
       - "8000:8000"
+
     volumes:
-      # 照片目录 (只读)
-      - ~/Pictures/TestDataset:/app/photos:ro
-      # 数据库持久化
+      # 照片目录 (通过启动脚本自动检测)
+      # Mac/Linux: 使用 ./start.sh (默认 ~/Pictures)
+      # Windows: 使用 start.bat (自动检测中英文系统)
+      - ${PHOTOS_DIR:-~/Pictures}:/app/photos:ro
+
+      # 数据库持久化 (无需修改)
       - ~/memory-hunter-data:/app/chroma_db
 
     environment:
-      - ENABLE_VLM=true # V2.0 Pro: Enable VLM
+      # VLM 功能开关
+      - ENABLE_VLM=true
+
+      # VLM 语言配置 (zh=中文, en=英文)
+      - VLM_LANGUAGE=zh
+
+      # Python 输出配置
       - PYTHONUNBUFFERED=1
-      # 可选: 如果模型需要 HuggingFace token
+      # 可选: HuggingFace Token (如需下载受限模型)
       # - HF_TOKEN=${HF_TOKEN}
 
       # V2.0 Pro: GPU 支持
     deploy:
       resources:
         limits:
-          memory: 32G # 增加内存限制以支持大模型
+          memory: 32G # 内存限制
         reservations:
-          memory: 8G
+          memory: 8G # 最小保留内存
           devices:
             - driver: nvidia
               count: 1

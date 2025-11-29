@@ -105,7 +105,76 @@ class CLIPModelManager:
     def get_info(self):
         """获取模型信息"""
         return {
-            "model_name": MODEL_NAME,
+            "model_name": CLIP_MODEL_NAME,
+            "device": DEVICE,
+            "loaded": self._initialized
+        }
+
+
+class BGEModelManager:
+    """BGE-M3 语义编码器 (单例模式)"""
+
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            logger.info("初始化 BGE-M3 语义编码器...")
+            cls._instance = super().__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+
+    def __init__(self):
+        if self._initialized:
+            return
+
+        self._load_model()
+        self._initialized = True
+
+    def _load_model(self):
+        """加载BGE-M3模型"""
+        try:
+            logger.info(f"正在加载模型: {BGE_MODEL_NAME}")
+            logger.info(f"设备: {DEVICE}")
+
+            # 加载 SentenceTransformer 模型
+            self.model = SentenceTransformer(BGE_MODEL_NAME)
+            self.model.to(DEVICE)
+
+            logger.info("✅ BGE-M3 模型加载成功!")
+
+        except Exception as e:
+            logger.error(f"❌ BGE-M3 模型加载失败: {e}")
+            raise
+
+    @torch.no_grad()
+    def encode_text(self, text):
+        """
+        编码文本为语义向量
+
+        Args:
+            text: 中文文本 (VLM生成的描述或OCR文字)
+
+        Returns:
+            numpy.ndarray: 语义特征向量 (1024维)
+        """
+        try:
+            # BGE-M3 自动归一化
+            embedding = self.model.encode(
+                text,
+                normalize_embeddings=True,
+                show_progress_bar=False
+            )
+
+            return embedding
+
+        except Exception as e:
+            logger.error(f"文本语义编码失败: {e}")
+            raise
+
+    def get_info(self):
+        """获取模型信息"""
+        return {
+            "model_name": BGE_MODEL_NAME,
             "device": DEVICE,
             "loaded": self._initialized
         }

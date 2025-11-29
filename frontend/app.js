@@ -408,25 +408,35 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// ============ Folder Management Drawer ============
+// ============ Folder Management Drawer (Commented out - Feature postponed) ============
+/*
 (function initFolderDrawer() {
     const settingsBtn = document.getElementById('settingsBtn');
     const folderDrawer = document.getElementById('folderDrawer');
     const drawerOverlay = document.getElementById('drawerOverlay');
     const drawerClose = document.getElementById('drawerClose');
-    const addFolderBtn = document.getElementById('addFolderBtn');
-    const addFolderForm = document.getElementById('addFolderForm');
     const folderList = document.getElementById('folderList');
-    const cancelAddBtn = document.getElementById('cancelAddBtn');
-    const confirmAddBtn = document.getElementById('confirmAddBtn');
-    const folderPathInput = document.getElementById('folderPathInput');
+    const folderLoading = document.getElementById('folderLoading');
+    const folderEmpty = document.getElementById('folderEmpty');
     const folderCount = document.getElementById('folderCount');
 
-    // Open drawer
+    // New: Action buttons
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const refreshListBtn = document.getElementById('refreshListBtn');
+    const startIndexBtn = document.getElementById('startIndexBtn');
+    const selectedCount = document.getElementById('selectedCount');
+
+    let foldersData = [];  // Store loaded folders
+    let selectedFolders = new Set();  // Track selected folder paths
+
+    // Open drawer and load folders
     if (settingsBtn) {
-        settingsBtn.addEventListener('click', () => {
+        settingsBtn.addEventListener('click', async () => {
             folderDrawer.classList.add('active');
             document.body.style.overflow = 'hidden';
+
+            // Auto-load folders when drawer opens
+            await loadFolders();
         });
     }
 
@@ -434,10 +444,6 @@ document.head.appendChild(style);
     function closeDrawer() {
         folderDrawer.classList.remove('active');
         document.body.style.overflow = '';
-        // Hide form when closing drawer
-        if (addFolderForm) {
-            addFolderForm.style.display = 'none';
-        }
     }
 
     if (drawerOverlay) {
@@ -448,87 +454,92 @@ document.head.appendChild(style);
         drawerClose.addEventListener('click', closeDrawer);
     }
 
-    // ESC key to close
+    // ESC to close
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && folderDrawer.classList.contains('active')) {
             closeDrawer();
         }
     });
 
-    // Show add folder form
-    if (addFolderBtn) {
-        addFolderBtn.addEventListener('click', () => {
-            if (addFolderForm.style.display === 'none' || !addFolderForm.style.display) {
-                addFolderForm.style.display = 'block';
-                folderPathInput.focus();
+    // Load folders from API
+    async function loadFolders() {
+        try {
+            // Show loading state
+            folderLoading.style.display = 'flex';
+            folderList.style.display = 'none';
+            folderEmpty.style.display = 'none';
+
+            const response = await fetch('/api/folders');
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const folders = await response.json();
+            foldersData = folders;
+
+            // Hide loading
+            folderLoading.style.display = 'none';
+
+            if (folders.length === 0) {
+                // Show empty state
+                folderEmpty.style.display = 'flex';
+                folderList.style.display = 'none';
             } else {
-                addFolderForm.style.display = 'none';
+                // Render folder cards with checkboxes
+                renderFolders(folders);
+                folderList.style.display = 'block';
+                folderEmpty.style.display = 'none';
+
+                // Update folder count
+                folderCount.textContent = i18n.t('folderCountText', { count: folders.length });
+
+                // Default: select all
+                selectAll();
             }
-        });
-    }
 
-    // Cancel add folder
-    if (cancelAddBtn) {
-        cancelAddBtn.addEventListener('click', () => {
-            addFolderForm.style.display = 'none';
-            folderPathInput.value = '';
-        });
-    }
+        } catch (error) {
+            console.error('Failed to load folders:', error);
+            folderLoading.style.display = 'none';
+            folderEmpty.style.display = 'flex';
 
-    // Confirm add folder (Mock - 前端演示用)
-    if (confirmAddBtn) {
-        confirmAddBtn.addEventListener('click', () => {
-            const path = folderPathInput.value.trim();
-            if (path) {
-                // Mock: 创建新的文件夹卡片
-                const newCard = createFolderCard(path, Math.floor(Math.random() * 500) + 100, Date.now());
-                folderList.insertBefore(newCard, folderList.firstChild);
-
-                // Update count
-                const currentCount = folderList.querySelectorAll('.folder-card').length;
-                folderCount.textContent = i18n.t('folderCountText', { count: currentCount });
-
-                // Reset form
-                folderPathInput.value = '';
-                addFolderForm.style.display = 'none';
-
-                // Show notification (mock)
-                console.log('Added folder:', path);
+            // Show error in empty state
+            const emptyText = folderEmpty.querySelector('p');
+            if (emptyText) {
+                emptyText.textContent = '⚠️ ' + (i18n.t('connectionFailed') || '加载失败');
             }
+        }
+    }
+
+    // Render folder cards with checkboxes
+    function renderFolders(folders) {
+        folderList.innerHTML = '';
+
+        folders.forEach((folder, index) => {
+            const card = createFolderCardWithCheckbox(folder, index);
+            folderList.appendChild(card);
         });
     }
 
-    // Remove folder button handlers
-    function setupRemoveButtons() {
-        const removeButtons = document.querySelectorAll('.folder-remove-btn');
-        removeButtons.forEach(btn => {
-            btn.addEventListener('click', function (e) {
-                e.stopPropagation();
-                const card = this.closest('.folder-card');
-                if (card && confirm(i18n.t('removeFolderConfirm'))) {
-                    card.style.animation = 'slideOutRight 0.3s ease-out';
-                    setTimeout(() => {
-                        card.remove();
-                        // Update count
-                        const currentCount = folderList.querySelectorAll('.folder-card').length;
-                        folderCount.textContent = i18n.t('folderCountText', { count: currentCount });
-                    }, 300);
-                }
-            });
-        });
-    }
-
-    // Create folder card element (helper function)
-    function createFolderCard(path, imageCount, id) {
+    // Create folder card with checkbox
+    function createFolderCardWithCheckbox(folder, index) {
         const card = document.createElement('div');
         card.className = 'folder-card';
-        card.setAttribute('data-folder-id', id);
+        card.dataset.folderPath = folder.path;
+
+        const isSelected = selectedFolders.has(folder.path);
+
         card.innerHTML = `
+            <label class="folder-checkbox-wrapper">
+                <input type="checkbox" class="folder-checkbox" data-path="${folder.path}" ${isSelected ? 'checked' : ''}>
+                <span class="checkbox-custom"></span>
+            </label>
+
             <div class="folder-card-icon">
                 <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M3 7V17C3 18.1046 3.89543 19 5 19H19C20.1046 19 21 18.1046 21 17V9C21 7.89543 20.1046 7 19 7H13L11 5H5C3.89543 5 3 5.89543 3 7Z" stroke="url(#folderGradient${id})" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M3 7V17C3 18.1046 3.89543 19 5 19H19C20.1046 19 21 18.1046 21 17V9C21 7.89543 20.1046 7 19 7H13L11 5H5C3.89543 5 3 5.89543 3 7Z" stroke="url(#folderGradient${index})" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <defs>
-                        <linearGradient id="folderGradient${id}" x1="3" y1="5" x2="21" y2="19" gradientUnits="userSpaceOnUse">
+                        <linearGradient id="folderGradient${index}" x1="3" y1="5" x2="21" y2="19" gradientUnits="userSpaceOnUse">
                             <stop stop-color="#667eea" />
                             <stop offset="1" stop-color="#f093fb" />
                         </linearGradient>
@@ -596,6 +607,7 @@ document.head.appendChild(style);
 
     console.log('✅ Folder drawer initialized');
 })();
+*/
 
 // ============================================
 // PRO DETAIL MODAL (V2.0) - Canvas & OCR
@@ -787,7 +799,7 @@ document.head.appendChild(style);
 })();
 
 // Add ESC key to close Modal (UX improvement)
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
     const modal = document.getElementById('proDetailModal');
     if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
         const closeBtn = document.getElementById('closeProModal');

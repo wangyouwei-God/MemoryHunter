@@ -28,6 +28,9 @@ from .config import (
     ENABLE_VLM, ENABLE_OBJECT_DETECTION
 )
 
+# 导入文件夹管理路由
+from .folders import router as folders_router
+
 # 配置日志
 logging.basicConfig(
     level=logging.INFO,
@@ -43,8 +46,11 @@ app = FastAPI(
     version="2.0.0-pro"
 )
 
+# 注册文件夹管理路由
+app.include_router(folders_router)
+
 # ============ 全局组件初始化 ============
-logger.info("�� 正在启动 MemoryHunter V2.0 Pro...")
+logger.info(" 正在启动 MemoryHunter V2.0 Pro...")
 
 try:
     # 1. 初始化 CLIP 模型管理器 (视觉编码)
